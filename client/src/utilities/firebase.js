@@ -20,3 +20,36 @@ export const auth = firebase.auth()
 
 // collection references
 export const usersCollection = db.collection('users')
+export const lessonsCollection = db.collection('lessons')
+export const lessonDataCollection = db.collection('lessonData')
+
+export async function addLesson(number, lessonData) {
+  lessonData.forEach(async data => {
+    // console.log(data)
+    await lessonsCollection
+      .doc(number)
+      .collection('lessonData')
+      .doc(`${data.number}`)
+      .set(data)
+  })
+}
+
+export async function getLesson(number) {
+  const lessonData = []
+
+  const snapshot = await lessonsCollection
+    .doc(number)
+    .collection('lessonData')
+    .orderBy('number')
+    .get()
+  snapshot.forEach(doc => void lessonData.push({ ...doc.data() }))
+
+  return lessonData
+}
+
+export async function submitAnswer(lessonNumber, name, question, answer) {
+  await lessonsCollection
+    .doc(lessonNumber)
+    .collection(name)
+    .add({ question, answer }) 
+}

@@ -2,14 +2,19 @@
   <div class="lesson">
     <h1 class="lesson__title">Lesson 1</h1>
 
-    <b-jumbotron class="lesson-slide" container-fluid>
+    <b-jumbotron v-if="slides.length" class="lesson-slide" container-fluid>
       <h2 class="lesson-slide__title">
         {{ slides[slideIndex].title }}
       </h2>
 
       <div class="lesson-slide__content">
         <div v-for="(displayItem, key) in displayItems" :key="key">
-          <p v-if="displayItem.type === 'text'">{{ displayItem.text }}</p>
+          <p 
+            v-if="displayItem.type === 'text' || 
+              displayItem.type === 'question'"
+          >
+            {{ displayItem.text }}
+          </p>
           <div 
             v-if="displayItem.type === 'image'"
             class="lesson-slide__content__image-container"
@@ -23,18 +28,18 @@
         </div>
       </div>
 
-      <div class="lesson-slide__controls">
+      <div v-if="userProfile.role === 'admin'" class="lesson-slide__controls">
         <b-button 
           class="lesson-slide__controls__item" 
           variant="primary" 
-          href="#"
+          @click="moveBackward"
         >
           &larr; Move Back
         </b-button>
 
         <b-button 
-          v-b-toggle.sidebar-right
           class="lesson-slide__controls__item"
+          @click="toggleSidebar"
         >
           Toggle Sidebar
         </b-button>
@@ -47,19 +52,28 @@
           Move Forward &rarr;
         </b-button>
       </div>
+
+      <div v-else class="less-slide__controls"></div>
     </b-jumbotron>
 
     <b-sidebar 
+      v-if="slides.length"
       id="sidebar-right"
       class="lesson-sidebar" 
-      title="Name's Answers" 
-      right 
+      :title="`${userProfile.name}'s Answers`"
+      right
       shadow
     >
       <div class="lesson-sidebar__container px-3 py-4">
         <div class="lesson-sidebar__content">
-          <div v-for="(displayItem, key) in displayItems" :key="key">
-            <p v-if="displayItem.type === 'text'">{{ displayItem.text }}</p>
+          <div v-for="(sidebarItem, key) in sidebarItems" :key="key">
+            <p 
+              :class="sidebarItem.type === 'question' 
+                ? 'lesson-sidebar__content__question' 
+                : 'lesson-sidebar__content__answer'"
+            >
+              {{ sidebarItem.text }}
+            </p>
           </div>
         </div>
 
@@ -67,13 +81,14 @@
           <b-form-textarea
             id="textarea"
             class="lesson-sidebar__input"
-            v-model="text"
+            v-model="answerInput"
             placeholder="Enter something..."
             rows="5"
             max-rows="6"
           ></b-form-textarea>
           <b-button 
             class="lesson-sidebar__submit"
+            @click="submitAnswer"
           >
             Submit
           </b-button>
@@ -84,7 +99,14 @@
 </template>
 
 <script>
-import lesson from '../mock/lesson_1_slides.json'
+import { mapState } from 'vuex'
+// import { addLesson } from '../utilities/firebase'
+import { getLesson, submitAnswer } from '../utilities/firebase'
+// import lesson from '../mock/lesson_1_slides.json'
+import io from 'socket.io-client'
+
+const ENDPOINT = process.env.NODE_ENV === 'production'
+  ? 'https://mini-bootcamp.herokuapp.com/' : 'http://localhost:5000/'
 
 export default {
   name: 'Lesson',
@@ -93,34 +115,128 @@ export default {
       slideIndex: 0,
       itemIndex: 0,
 
-      slides: lesson,
+      slides: [],
 
-      displayItems: []
+      displayItems: [],
+
+      sidebarItems: [],
+
+      currentQuestion: '',
+      answerInput: '',
+
+      socket: null,
+
+      showSidebar: false
     }
   },
-  mounted: function() {
+  computed: mapState(['userProfile']),
+  mounted: async function() {
+    // await addLesson('1', lesson)
+    this.slides = await getLesson('1')
 
+    this.socket = io(ENDPOINT)
+    this.socket.on('connect', () => void console.log('connected'))
+    this.socket.on('toggleSidebar', (value) => void this.setShowSidebar(value))
+    this.socket.on('lessonState', (indexes) => {
+      this.setSlideIndex(indexes.slideIndex)
+      this.setItemIndex(indexes.itemIndex)
+      this.setDisplayItems(indexes.displayItems)
+    })
+  },
+  watch: {
+    showSidebar: function(value) {
+      if (value) {
+        document.getElementById('sidebar-right').style.display = 'block'
+        document
+          .getElementById('sidebar-right')
+          .setAttribute('aria-hidden', 'false')
+      } else {
+        document.getElementById('sidebar-right').style.display = 'none'
+        document
+          .getElementById('sidebar-right')
+          .setAttribute('aria-hidden', 'true')
+      }
+    }
   },
   methods: {
-    moveForward: function() {
-      if (this.itemIndex < this.slides[this.slideIndex].items.length) {
-        this.displayItems
-          .push(this.slides[this.slideIndex].items[this.itemIndex])
-        this.itemIndex += 1
-      } else {
-        if (this.slideIndex < this.slides.length) {
-          this.slideIndex += 1
-          this.itemIndex = 0
-          this.displayItems = []
+    toggleSidebar: function() {
+      this.showSidebar = !this.showSidebar
+      this.socket.emit('toggle', this.showSidebar)
+    },
+
+    setShowSidebar: function(value) {
+      this.showSidebar = value
+    },
+    setSlideIndex: function(value) {
+      this.slideIndex = value
+    },
+    setItemIndex: function(value) {
+      this.itemIndex = value
+    },
+    setDisplayItems: function(value) {
+      this.displayItems = value
+    },
+
+    moveBackward: function() {
+      if (this.itemIndex === 0) {
+        if (this.slideIndex === 0) {
+          console.log('This is the very beginning')
+        } else {
+          this.slideIndex -= 1
+          this.displayItems = this.slides[this.slideIndex].items
+          this.itemIndex = this.slides[this.slideIndex].items.length 
         }
+      } else {
+        this.itemIndex -= 1
+        this.displayItems.pop()
       }
 
-      if (
-        this.itemIndex === this.slides[this.slideIndex].items.length && 
-        this.slideIndex === this.slides.length
-      ) {
-        this.displayItems = ['The end']
-        console.log('The end!')
+      console.log(`Item: ${this.itemIndex}, Slide: ${this.slideIndex}`)
+      this.socket.emit('lesson', { 
+        slideIndex: this.slideIndex,
+        itemIndex: this.itemIndex,
+        displayItems: this.displayItems
+      })
+    },
+    moveForward: function() {
+      if (this.itemIndex === this.slides[this.slideIndex].items.length) {
+        if (this.slideIndex === this.slides.length - 1) {
+          console.log('This is the end');
+        } else {
+          this.slideIndex += 1
+          this.displayItems = []
+          this.itemIndex = 0
+        }
+      } else {
+        this.displayItems
+          .push(this.slides[this.slideIndex].items[this.itemIndex])
+
+        console.log(this.slides[this.slideIndex].items[this.itemIndex].type)
+        if (
+          this.slides[this.slideIndex].items[this.itemIndex].type === 'question'
+        ) {
+          this.currentQuestion = 
+            this.slides[this.slideIndex].items[this.itemIndex].text
+          console.log('adding')
+          this.sidebarItems
+            .push(this.slides[this.slideIndex].items[this.itemIndex]);
+        }
+        this.itemIndex += 1
+      }
+
+      console.log(`Item: ${this.itemIndex}, Slide: ${this.slideIndex}`)
+      this.socket.emit('lesson', { 
+        slideIndex: this.slideIndex,
+        itemIndex: this.itemIndex,
+        displayItems: this.displayItems
+      })
+    },
+
+    submitAnswer: async function() {
+      if (this.answerInput) {
+        this.sidebarItems.push({ text: this.answerInput })
+        await submitAnswer('1', this.userProfile.name, this.currentQuestion, this.answerInput)
+        this.answerInput = ''
       }
     }
   }
@@ -187,6 +303,7 @@ export default {
         width: 100%;
         height: 100%;
         object-fit: cover;
+        background-position: center bottom;
       }
     }
 
@@ -227,6 +344,11 @@ export default {
     &__content {
       text-align: left;
       overflow: auto;
+
+      &__answer {
+        color: var(--secondary-text);
+        margin-left: 1rem;
+      }
     }
 
     &__input__container {
@@ -240,6 +362,7 @@ export default {
     }
 
     &__submit {
+      margin-bottom: 3rem;
       border: 1px solid var(--primary-color);
       background-color: var(--dark-primary-color);
       color: var(--text);

@@ -2,6 +2,7 @@
   "name": "client",
   "version": "0.1.0",
   "private": true,
+  "proxy": "http://localhost:5000",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
@@ -12,8 +13,10 @@
     "core-js": "^3.6.5",
     "es6-promise": "^4.2.8",
     "firebase": "^8.0.0",
+    "socket.io-client": "^2.3.1",
     "vue": "^2.6.11",
     "vue-router": "^3.4.8",
+    "vue-socket.io": "^3.0.10",
     "vuex": "^3.5.1"
   },
   "devDependencies": {

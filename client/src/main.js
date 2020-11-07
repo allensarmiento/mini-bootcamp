@@ -5,6 +5,7 @@ import 'es6-promise/auto'
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
+// import VueSocketIO from 'vue-socket.io'
 import App from './App.vue'
 import Dashboard from './views/Dashboard.vue'
 import { auth } from './utilities/firebase'
@@ -86,7 +87,7 @@ const store = new Vuex.Store({
         router.push('/')
       }
     },
-    async signup({ dispatch }, form) {
+    async signup(dispatch, form) {
       // sign user up
       try {
       const { user } = 
@@ -95,10 +96,11 @@ const store = new Vuex.Store({
       // create user profile object in userCollection
       await fb.usersCollection.doc(user.uid).set({
         name: form.name,
+        role: 'member'
       })
 
       // fetch user profile and set in state
-      dispatch('fetchUserProfile', user)
+      // ! dispatch('fetchUserProfile', user)
       } catch(error) {
         console.log(error)
       }
@@ -112,6 +114,11 @@ const store = new Vuex.Store({
     }
   }
 })
+
+// Vue.use(new VueSocketIO({
+//   debug: true,
+//   connection: 'localhost:5000',
+// }))
 
 let app
 auth.onAuthStateChanged(user => {
