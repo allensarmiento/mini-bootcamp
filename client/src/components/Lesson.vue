@@ -1,7 +1,5 @@
 <template>
   <section>
-    <navbar />
-
     <div class="lesson">
       <h1 class="lesson__title">Lesson {{ lessonNumber }}</h1>
 
@@ -123,14 +121,12 @@ import { mapState } from 'vuex'
 import { getLesson, submitAnswer } from '../utilities/firebase'
 // import lesson from '../mock/lesson_2_slides.json'
 import io from 'socket.io-client'
-import Navbar from './Navbar.vue'
 
 const ENDPOINT = process.env.NODE_ENV === 'production'
-  ? 'https://mini-bootcamp.herokuapp.com/' : 'http://localhost:5000/'
+  ? process.env.VUE_APP_ENDPOINT : 'http://localhost:5000/'
 
 export default {
   name: 'Lesson',
-  components: { Navbar },
   data: function() {
     return {
       lessonNumber: null,

@@ -7,7 +7,6 @@ import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
 import App from './App.vue'
 import Dashboard from './views/Dashboard.vue'
-import Lesson from './components/Lesson.vue'
 import { auth } from './utilities/firebase'
 import * as fb from './utilities/firebase'
 
@@ -20,6 +19,8 @@ Vue.use(IconsPlugin)
 
 Vue.config.productionTip = false
 
+////////////////////
+// Routes
 const routes = [
   {
     path: '/',
@@ -37,7 +38,18 @@ const routes = [
   {
     path: '/lesson/:lessonNumber',
     name: 'Lesson',
-    component: Lesson
+    component: () => import('./components/Lesson.vue'),
+    meta: {
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/lesson/:lessonNumber/edit',
+    name: 'EditLesson',
+    component: () => import('./components/EditLesson.vue'),
+    meta: {
+      requiresAuth: true
+    }
   }
 ]
 
@@ -57,6 +69,8 @@ router.beforeEach((to, from, next) => {
   }
 })
 
+////////////////////
+// Store
 const store = new Vuex.Store({
   state: {
     userProfile: {}
@@ -116,11 +130,8 @@ const store = new Vuex.Store({
   }
 })
 
-// Vue.use(new VueSocketIO({
-//   debug: true,
-//   connection: 'localhost:5000',
-// }))
-
+////////////////////
+// Initiate
 let app
 auth.onAuthStateChanged(user => {
   if (!app) {
