@@ -5,7 +5,6 @@ import 'es6-promise/auto'
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap-vue/dist/bootstrap-vue.css'
-// import VueSocketIO from 'vue-socket.io'
 import App from './App.vue'
 import Dashboard from './views/Dashboard.vue'
 import Lesson from './components/Lesson.vue'
@@ -91,17 +90,18 @@ const store = new Vuex.Store({
     async signup(dispatch, form) {
       // sign user up
       try {
-      const { user } = 
-        await fb.auth.createUserWithEmailAndPassword(form.email, form.password)
-      
-      // create user profile object in userCollection
-      await fb.usersCollection.doc(user.uid).set({
-        name: form.name,
-        role: 'member'
-      })
+        const { user } = 
+          await fb.auth
+            .createUserWithEmailAndPassword(form.email, form.password)
+        
+        // create user profile object in userCollection
+        await fb.usersCollection.doc(user.uid).set({
+          name: form.name,
+          role: 'member'
+        })
 
-      // fetch user profile and set in state
-      // ! dispatch('fetchUserProfile', user)
+        // fetch user profile and set in state
+        // ! dispatch('fetchUserProfile', user)
       } catch(error) {
         console.log(error)
       }
