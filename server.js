@@ -39,10 +39,17 @@ io.sockets.on('connection', socket => {
   })
 
   socket.on('lesson', function(indexes) {
-    console.log(indexes)
     for (let i in SOCKET_LIST) {
       const socket = SOCKET_LIST[i]
       socket.emit('lessonState', indexes)
+    }
+  })
+
+  socket.on('sidebar', function(options) {
+    console.log(options)
+    for (let i in SOCKET_LIST) {
+      const socket = SOCKET_LIST[i]
+      socket.emit('sidebarState', options)
     }
   })
 })

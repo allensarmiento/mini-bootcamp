@@ -1,6 +1,6 @@
 <template>
   <div class="lesson">
-    <h1 class="lesson__title">Lesson 1</h1>
+    <h1 class="lesson__title">Lesson {{ lessonNumber }}</h1>
 
     <b-jumbotron v-if="slides.length" class="lesson-slide" container-fluid>
       <h2 class="lesson-slide__title">
@@ -102,7 +102,7 @@
 import { mapState } from 'vuex'
 // import { addLesson } from '../utilities/firebase'
 import { getLesson, submitAnswer } from '../utilities/firebase'
-// import lesson from '../mock/lesson_1_slides.json'
+// import lesson from '../mock/lesson_2_slides.json'
 import io from 'socket.io-client'
 
 const ENDPOINT = process.env.NODE_ENV === 'production'
@@ -112,6 +112,8 @@ export default {
   name: 'Lesson',
   data: function() {
     return {
+      lessonNumber: null,
+
       slideIndex: 0,
       itemIndex: 0,
 
@@ -131,8 +133,9 @@ export default {
   },
   computed: mapState(['userProfile']),
   mounted: async function() {
-    // await addLesson('1', lesson)
-    this.slides = await getLesson('1')
+    // await addLesson('2', lesson)
+    this.lessonNumber = this.$route.params.lessonNumber
+    this.slides = await getLesson(this.$route.params.lessonNumber)
 
     this.socket = io(ENDPOINT)
     this.socket.on('connect', () => void console.log('connected'))
@@ -141,6 +144,9 @@ export default {
       this.setSlideIndex(indexes.slideIndex)
       this.setItemIndex(indexes.itemIndex)
       this.setDisplayItems(indexes.displayItems)
+    })
+    this.socket.on('sidebarState', options => {
+      this.setCurrentQuestion(options.currentQuestion)
     })
   },
   watch: {
@@ -175,6 +181,11 @@ export default {
     },
     setDisplayItems: function(value) {
       this.displayItems = value
+    },
+    setCurrentQuestion: function(value) {
+      // NOTE: Can't seem to update the sidebar items
+      this.sidebarItems.push({ type: 'question',  text: value })
+      this.currentQuestion = value
     },
 
     moveBackward: function() {
@@ -217,9 +228,12 @@ export default {
         ) {
           this.currentQuestion = 
             this.slides[this.slideIndex].items[this.itemIndex].text
-          console.log('adding')
-          this.sidebarItems
-            .push(this.slides[this.slideIndex].items[this.itemIndex]);
+          // this.sidebarItems
+          //   .push(this.slides[this.slideIndex].items[this.itemIndex])
+          
+          this.socket.emit('sidebar', {
+            currentQuestion: this.currentQuestion,
+          })
         }
         this.itemIndex += 1
       }
@@ -228,7 +242,7 @@ export default {
       this.socket.emit('lesson', { 
         slideIndex: this.slideIndex,
         itemIndex: this.itemIndex,
-        displayItems: this.displayItems
+        displayItems: this.displayItems,
       })
     },
 

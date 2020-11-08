@@ -8,6 +8,7 @@ import 'bootstrap-vue/dist/bootstrap-vue.css'
 // import VueSocketIO from 'vue-socket.io'
 import App from './App.vue'
 import Dashboard from './views/Dashboard.vue'
+import Lesson from './components/Lesson.vue'
 import { auth } from './utilities/firebase'
 import * as fb from './utilities/firebase'
 
@@ -35,9 +36,9 @@ const routes = [
     component: () => import('./views/Login.vue')
   },
   {
-    path: '/lesson',
+    path: '/lesson/:lessonNumber',
     name: 'Lesson',
-    component: () => import('./components/Lesson.vue')
+    component: Lesson
   }
 ]
 

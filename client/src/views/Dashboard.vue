@@ -5,7 +5,9 @@
     <br/>
     <br/>
     <div>
-      <router-link to="/lesson">Lesson 1</router-link>
+      <router-link to="/lesson/1">Lesson 1</router-link>
+      <br/>
+      <router-link to="/lesson/2">Lesson 2</router-link>
     </div>
     <br/>
     <br/>
