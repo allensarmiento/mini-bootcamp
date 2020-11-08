@@ -1,101 +1,116 @@
 <template>
-  <div class="lesson">
-    <h1 class="lesson__title">Lesson {{ lessonNumber }}</h1>
+  <section>
+    <navbar />
 
-    <b-jumbotron v-if="slides.length" class="lesson-slide" container-fluid>
-      <h2 class="lesson-slide__title">
-        {{ slides[slideIndex].title }}
-      </h2>
+    <div class="lesson">
+      <h1 class="lesson__title">Lesson {{ lessonNumber }}</h1>
 
-      <div class="lesson-slide__content">
-        <div v-for="(displayItem, key) in displayItems" :key="key">
-          <p 
-            v-if="displayItem.type === 'text' || 
-              displayItem.type === 'question'"
-          >
-            {{ displayItem.text }}
-          </p>
-          <div 
-            v-if="displayItem.type === 'image'"
-            class="lesson-slide__content__image-container"
-          >
-            <img 
-              v-if="displayItem.type === 'image'"
-              class="lesson-slide__content__image"
-              :src="displayItem.image"
-            /> 
-          </div>
-        </div>
-      </div>
+      <b-jumbotron v-if="slides.length" class="lesson-slide" container-fluid>
+        <h2 class="lesson-slide__title">
+          {{ slides[slideIndex].title }}
+        </h2>
 
-      <div v-if="userProfile.role === 'admin'" class="lesson-slide__controls">
-        <b-button 
-          class="lesson-slide__controls__item" 
-          variant="primary" 
-          @click="moveBackward"
-        >
-          &larr; Move Back
-        </b-button>
-
-        <b-button 
-          class="lesson-slide__controls__item"
-          @click="toggleSidebar"
-        >
-          Toggle Sidebar
-        </b-button>
-
-        <b-button 
-          class="lesson-slide__controls__item" 
-          variant="primary" 
-          @click="moveForward"
-        >
-          Move Forward &rarr;
-        </b-button>
-      </div>
-
-      <div v-else class="less-slide__controls"></div>
-    </b-jumbotron>
-
-    <b-sidebar 
-      v-if="slides.length"
-      id="sidebar-right"
-      class="lesson-sidebar" 
-      :title="`${userProfile.name}'s Answers`"
-      right
-      shadow
-    >
-      <div class="lesson-sidebar__container px-3 py-4">
-        <div class="lesson-sidebar__content">
-          <div v-for="(sidebarItem, key) in sidebarItems" :key="key">
+        <div ref="lessonContainer" class="lesson-slide__content">
+          <div v-for="(displayItem, key) in displayItems" :key="key">
+            <!-- Text or Question -->
             <p 
-              :class="sidebarItem.type === 'question' 
-                ? 'lesson-sidebar__content__question' 
-                : 'lesson-sidebar__content__answer'"
+              v-if="displayItem.type === 'text' || 
+                displayItem.type === 'question'"
             >
-              {{ sidebarItem.text }}
+              {{ displayItem.text }}
             </p>
+
+            <!-- Image -->
+            <div 
+              v-if="displayItem.type === 'image'"
+              class="lesson-slide__content__image-container"
+            >
+              <img 
+                v-if="displayItem.type === 'image'"
+                class="lesson-slide__content__image"
+                :src="displayItem.image"
+              /> 
+            </div>
+
+            <!-- Table -->
+            <b-table 
+              v-if="displayItem.type === 'table'" 
+              striped 
+              :items="displayItem.table"
+            ></b-table>
           </div>
         </div>
 
-        <div class="lesson-sidebar__input__container">
-          <b-form-textarea
-            id="textarea"
-            class="lesson-sidebar__input"
-            v-model="answerInput"
-            placeholder="Enter something..."
-            rows="5"
-            max-rows="6"
-          ></b-form-textarea>
+        <!-- Admin controls -->
+        <div v-if="userProfile.role === 'admin'" class="lesson-slide__controls">
           <b-button 
-            class="lesson-sidebar__submit"
-            @click="submitAnswer"
+            class="lesson-slide__controls__item" 
+            variant="primary" 
+            @click="moveBackward"
           >
-            Submit
+            &larr; Move Back
+          </b-button>
+
+          <b-button 
+            class="lesson-slide__controls__item"
+            @click="toggleSidebar"
+          >
+            Toggle Sidebar
+          </b-button>
+
+          <b-button 
+            class="lesson-slide__controls__item" 
+            variant="primary" 
+            @click="moveForward"
+          >
+            Move Forward &rarr;
           </b-button>
         </div>
-      </div>
-    </b-sidebar>
-  </div>
+
+        <div v-else class="less-slide__controls"></div>
+      </b-jumbotron>
+
+      <b-sidebar 
+        v-if="slides.length"
+        id="sidebar-right"
+        class="lesson-sidebar" 
+        :title="`${userProfile.name}'s Answers`"
+        right
+        shadow
+      >
+        <div class="lesson-sidebar__container px-3 py-4">
+          <div class="lesson-sidebar__content">
+            <div v-for="(sidebarItem, key) in sidebarItems" :key="key">
+              <p 
+                :class="sidebarItem.type === 'question' 
+                  ? 'lesson-sidebar__content__question' 
+                  : 'lesson-sidebar__content__answer'"
+              >
+                {{ sidebarItem.text }}
+              </p>
+            </div>
+          </div>
+
+          <div class="lesson-sidebar__input__container">
+            <b-form-textarea
+              id="textarea"
+              class="lesson-sidebar__input"
+              v-model="answerInput"
+              placeholder="Enter something..."
+              rows="5"
+              max-rows="6"
+            ></b-form-textarea>
+            <b-button 
+              class="lesson-sidebar__submit"
+              @click="submitAnswer"
+            >
+              Submit
+            </b-button>
+          </div>
+        </div>
+      </b-sidebar>
+    </div>
+  </section>
 </template>
 
 <script>
@@ -104,12 +119,14 @@ import { mapState } from 'vuex'
 import { getLesson, submitAnswer } from '../utilities/firebase'
 // import lesson from '../mock/lesson_2_slides.json'
 import io from 'socket.io-client'
+import Navbar from './Navbar.vue'
 
 const ENDPOINT = process.env.NODE_ENV === 'production'
   ? 'https://mini-bootcamp.herokuapp.com/' : 'http://localhost:5000/'
 
 export default {
   name: 'Lesson',
+  components: { Navbar },
   data: function() {
     return {
       lessonNumber: null,
@@ -144,6 +161,7 @@ export default {
       this.setSlideIndex(indexes.slideIndex)
       this.setItemIndex(indexes.itemIndex)
       this.setDisplayItems(indexes.displayItems)
+      this.$refs.lessonContainer.scrollTop = this.$refs.lessonContainer.scrollHeight
     })
     this.socket.on('sidebarState', options => {
       this.setCurrentQuestion(options.currentQuestion)
@@ -228,8 +246,6 @@ export default {
         ) {
           this.currentQuestion = 
             this.slides[this.slideIndex].items[this.itemIndex].text
-          // this.sidebarItems
-          //   .push(this.slides[this.slideIndex].items[this.itemIndex])
           
           this.socket.emit('sidebar', {
             currentQuestion: this.currentQuestion,
@@ -261,7 +277,7 @@ export default {
   .lesson {
     display: grid;
     grid-template-rows: [title-start] 10vh [title-end
-                        main-start] 90vh [main-end];
+                        main-start] 85vh [main-end];
 
     &__title {
       grid-row: title-start / title-end;
@@ -286,7 +302,7 @@ export default {
                         controls-start] min-content [controls-end];
 
     padding: 0;
-    height: 90vh;
+    height: 85vh;
     background-color: var(--light-primary-color);
     color: var(--primary-text);
 

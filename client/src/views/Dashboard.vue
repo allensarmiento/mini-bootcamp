@@ -1,32 +1,6 @@
 <template>
   <div class="dashboard">
-    <b-navbar class="dashboard__navbar" toggleable="lg" type="dark" variant="info">
-      <b-navbar-brand class="dashboard__navbar__brand">
-        Mini Bootcamp
-      </b-navbar-brand>
-
-      <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
-
-      <b-collapse id="nav-collapse" is-nav>
-        <b-navbar-nav class="ml-auto">
-          <b-nav-item-dropdown class="dashboard__navbar__options" right>
-            <template #button-content>
-              <em>User</em>
-            </template>
-            <b-dropdown-item 
-              class="dashboard__navbar__option" 
-              href="#" 
-              disabled
-            >
-              Profile
-            </b-dropdown-item>
-            <b-dropdown-item class="dashboard__navbar__option" @click="logout">
-              Sign Out
-            </b-dropdown-item>
-          </b-nav-item-dropdown>
-        </b-navbar-nav>
-      </b-collapse>
-    </b-navbar>
+    <navbar />
 
     <div class="dashboard__lessons">
       <router-link to="/lesson/1">
@@ -104,8 +78,11 @@
 
 <script>
 import { mapState } from 'vuex'
+import Navbar from '../components/Navbar.vue'
 
 export default {
+  name: 'Dashboard',
+  components: { Navbar },
   data: function() {
     return {
       signupForm: {
