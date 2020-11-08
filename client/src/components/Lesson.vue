@@ -10,7 +10,7 @@
           {{ slides[slideIndex].title }}
         </h2>
 
-        <div ref="lessonContainer" class="lesson-slide__content">
+        <div class="lesson-slide__content">
           <div v-for="(displayItem, key) in displayItems" :key="key">
             <!-- Text or Question -->
             <p 
@@ -28,7 +28,10 @@
               <img 
                 v-if="displayItem.type === 'image'"
                 class="lesson-slide__content__image"
-                :style="displayItem.imageStyles.objectFit"
+                :style="displayItem.imageStyles && 
+                  displayItem.imageStyles.objectFit 
+                    ? displayItem.imageStyles.objectFit 
+                    : ''"
                 :src="displayItem.image"
               /> 
             </div>
@@ -162,7 +165,12 @@ export default {
       this.setSlideIndex(indexes.slideIndex)
       this.setItemIndex(indexes.itemIndex)
       this.setDisplayItems(indexes.displayItems)
-      this.$refs.lessonContainer.scrollTop = this.$refs.lessonContainer.scrollHeight
+      
+      // Refs aren't reactive, so it has to be done manually.
+      const lessonContainer = document.querySelector('.lesson-slide__content')
+      if (lessonContainer) {
+        lessonContainer.scrollTop = lessonContainer.scrollHeight
+      }
     })
     this.socket.on('sidebarState', options => {
       this.setCurrentQuestion(options.currentQuestion)
