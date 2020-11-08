@@ -28,6 +28,7 @@
               <img 
                 v-if="displayItem.type === 'image'"
                 class="lesson-slide__content__image"
+                :style="displayItem.imageStyles.objectFit"
                 :src="displayItem.image"
               /> 
             </div>
