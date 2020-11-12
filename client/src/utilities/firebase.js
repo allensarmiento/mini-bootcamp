@@ -53,3 +53,11 @@ export async function submitAnswer(lessonNumber, name, question, answer) {
     .collection(name)
     .add({ question, answer }) 
 }
+
+export async function updateSlide(lessonNumber, slideNumber, title, items) {
+  await lessonsCollection
+    .doc(lessonNumber)
+    .collection('lessonData')
+    .doc(slideNumber)
+    .update({ number: Number.parseInt(slideNumber), title, items });
+}
