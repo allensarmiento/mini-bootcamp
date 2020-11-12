@@ -48,8 +48,9 @@ const routes = [
     name: 'EditLesson',
     component: () => import('./components/EditLesson.vue'),
     meta: {
-      requiresAuth: true
-    }
+      requiresAuth: true,
+      requiresAdmin: true
+    },
   }
 ]
 
@@ -59,21 +60,16 @@ const router = new VueRouter({
   routes
 })
 
-router.beforeEach((to, from, next) => {
-  const requiresAuth = to.matched.some(x => x.meta.requiresAuth)
-
-  if (requiresAuth && !auth.currentUser) {
-    next('/login')
-  } else {
-    next()
-  }
-})
-
 ////////////////////
 // Store
 const store = new Vuex.Store({
   state: {
     userProfile: {}
+  },
+  getters: {
+    isAdmin: state => {
+      return state.userProfile.role === 'admin'
+    }
   },
   mutations: {
     setUserProfile(state, val) {
@@ -127,6 +123,25 @@ const store = new Vuex.Store({
       commit('setUserProfile', {})
       router.push('/login')
     }
+  }
+})
+
+router.beforeEach((to, from, next) => {
+  const requiresAuth = to.matched.some(x => x.meta.requiresAuth)
+  const requiresAdmin = to.matched.some(x => x.meta.requiresAdmin)
+
+  if (requiresAuth && !auth.currentUser) {
+    next('/login')
+  } else {
+    if (requiresAdmin) {
+      if (store.getters.isAdmin) {
+        next()
+      } else {
+        next('/')
+      }
+    }
+
+    next()
   }
 })
 
