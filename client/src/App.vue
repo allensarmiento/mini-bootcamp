@@ -1,19 +1,19 @@
 <template>
   <div id="app">
     <navbar v-if="userProfile.name" />
-    <router-view />
+    <router-view/>
   </div>
 </template>
 
 <script>
-import { mapState } from 'vuex'
-import Navbar from './components/Navbar.vue'
+import { mapState } from 'vuex';
+import Navbar from './core/Navbar.vue';
 
 export default {
   name: 'App',
   components: { Navbar },
   computed: mapState(['userProfile']),
-}
+};
 </script>
 
 <style lang="scss">
@@ -47,6 +47,18 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  // margin-top: 60px;
+}
+
+#nav {
+  padding: 30px;
+
+  a {
+    font-weight: bold;
+    color: #2c3e50;
+
+    &.router-link-exact-active {
+      color: #42b983;
+    }
+  }
 }
 </style>
