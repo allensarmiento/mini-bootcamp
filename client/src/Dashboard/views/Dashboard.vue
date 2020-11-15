@@ -1,14 +1,21 @@
 <template>
   <div class="dashboard">
     <h2>Lessons</h2>
+    <!-- Lessons -->
     <section class="dashboard__lessons">
-      <LessonLink to="/lesson/1" variant="secondary" text="Lesson 1" />
-      <LessonLink to="/lesson/2" variant="secondary" text="Lesson 2" />
-      <LessonLink to="/lesson/3" variant="success" text="Lesson 3" />
+      <LessonLink
+        v-for="lessonNumber in lessons"
+        :key="lessonNumber" class="dashboard__lessons"
+        :to="`/lesson/${lessonNumber}`"
+        :variant="lessonNumber !== lessons.length
+          ? 'secondary' : 'success'"
+        :text="`Lesson ${lessonNumber}`"
+      />
     </section>
 
     <hr />
 
+    <!-- Review Lessons -->
     <h2 class="mt-5">Review Lessons</h2>
     <section>
       <p>Currently in progress...</p>
@@ -16,18 +23,25 @@
 
     <hr v-if="userProfile.role === 'admin'" />
 
+    <!-- Edit Lessons -->
     <h2 v-if="userProfile.role === 'admin'" class="mt-5">Edit Lessons</h2>
     <section
       v-if="userProfile.role === 'admin'"
       class="dashboard__edit-lessons"
     >
-      <LessonLink to="/lesson/1/edit" variant="secondary" text="Lesson 1" />
-      <LessonLink to="/lesson/2/edit" variant="secondary" text="Lesson 2" />
-      <LessonLink to="/lesson/3/edit" variant="success" text="Lesson 3" />
+      <LessonLink
+        v-for="lessonNumber in lessons"
+        :key="lessonNumber" class="dashboard__lessons"
+        :to="`/lesson/${lessonNumber}/edit`"
+        :variant="lessonNumber !== lessons.length
+          ? 'secondary' : 'success'"
+        :text="`Lesson ${lessonNumber}`"
+      />
     </section>
 
     <hr v-if="userProfile.role === 'admin'" />
 
+    <!-- Signup -->
     <SignupForm v-if="userProfile.role === 'admin'" />
   </div>
 </template>
@@ -40,6 +54,11 @@ import SignupForm from '../components/SignupForm.vue';
 export default {
   name: 'Dashboard',
   components: { LessonLink, SignupForm },
+  data() {
+    return {
+      lessons: [1, 2, 3, 4],
+    };
+  },
   computed: mapState(['userProfile']),
 };
 </script>

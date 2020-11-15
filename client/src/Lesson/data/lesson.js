@@ -38,7 +38,9 @@ export async function updateSlide({
 } = {}) {
   if (!lessonNumber || !slideNumber || !title || !items) return;
 
+  // Since all the set attributes are here, we can do this without
+  // calling update.
   await lessonDataCollection(lessonNumber)
     .doc(slideNumber)
-    .update({ number: Number.parseInt(slideNumber, 10), title, items });
+    .set({ number: Number.parseInt(slideNumber, 10), title, items });
 }

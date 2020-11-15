@@ -2,7 +2,16 @@
   <div>
     <h1>Edit Lesson {{ lessonNumber }}</h1>
 
-    <div style="padding: 4rem;">
+    <!-- Add Slide -->
+    <BButton
+      v-b-modal.modal-center
+      @click="addSlideClicked"
+    >
+      Add Slide
+    </BButton>
+
+    <!-- Slide Content -->
+    <div class="edit-slide">
       <BJumbotron v-for="(slide, index) in slides" :key="index">
         <template #header>
           Slide {{ slide.number }}: {{ slide.title }}
@@ -10,55 +19,40 @@
 
         <hr class="my-4" />
 
-        <div style="text-align: left;">
+        <div class="edit-slide__content">
           <div v-for="(item, index) in slide.items" :key="index">
-            <p v-if="item.type === 'text' || item.type === 'question'">
-              {{ item.text }}
-            </p>
-
-            <div
-              v-if="item.type === 'image'"
-              style="width: 50rem; height: 50rem;"
-            >
-              <img
-                style="width: 100%; height: 100%; object-fit: cover;"
-                :style="item.imageStyles &&
-                  item.imageStyles.objectFit
-                    ? item.imageStyles.objectFit
-                    : ''"
-                :src="item.image"
-              />
-            </div>
-
-            <BTable
-              v-if="item.type === 'table'"
-              :items="item.table"
-              striped
+            <Content
+              :type="item.type"
+              :value="item[slideValue(item.type)]"
             />
           </div>
         </div>
 
-        <div style="display: flex; justify-content: space-between;">
+        <div class="edit-slide__buttons">
           <BButton
             v-b-modal.modal-center
+            class="edit-slide__button"
             variant="primary"
             @click="editSlideClicked(slide)"
           >
             Edit
           </BButton>
 
-          <BButton variant="warning">Delete</BButton>
+          <BButton class="edit-slide__button" variant="warning">
+            Delete
+          </BButton>
         </div>
       </BJumbotron>
     </div>
 
+    <!-- Modal -->
     <div>
       <BModal v-model="show" id="modal-center" centered title="BootstrapVue">
         <BInputGroup prepend="Number" class="mt-3">
           <BFormInput v-model="editSlide.number" />
         </BInputGroup>
 
-        <BInputGroup preprend="Title" class="mt-3">
+        <BInputGroup prepend="Title" class="mt-3">
           <BFormInput v-model="editSlide.title" />
         </BInputGroup>
 
@@ -105,6 +99,7 @@
               v-model="editSlideInputType"
               :options="[
                 { value: 'text', text: 'Text' },
+                { value: 'question', text: 'Question' },
                 { value: 'image', text: 'Image' },
               ]"
             ></b-form-select>
@@ -136,8 +131,6 @@
         </template>
       </BModal>
     </div>
-
-    <h2>Add Slide</h2>
   </div>
 </template>
 
@@ -145,25 +138,25 @@
 import { mapState } from 'vuex';
 import {
   BJumbotron,
-  BTable,
   BButton,
   BModal,
   BInputGroup,
   BInputGroupAppend,
   BFormInput,
 } from 'bootstrap-vue';
+import Content from '../components/Content.vue';
 import { getLesson, updateSlide } from '../data/lesson';
 
 export default {
   name: 'Edit',
   components: {
     BJumbotron,
-    BTable,
     BButton,
     BModal,
     BInputGroup,
     BInputGroupAppend,
     BFormInput,
+    Content,
   },
   data() {
     return {
@@ -184,11 +177,34 @@ export default {
     this.slides = await getLesson(this.lessonNumber);
   },
   methods: {
+    slideValue(type) {
+      let value = '';
+
+      if (type === 'text') {
+        value = 'text';
+      } else if (type === 'question') {
+        value = 'text';
+      } else if (type === 'image') {
+        value = 'image';
+      } else if (type === 'table') {
+        value = 'table';
+      }
+
+      console.log(value);
+      return value;
+    },
+    addSlideClicked() {
+      this.editSlide = {
+        number: this.slides.length,
+        title: '',
+        items: [],
+      };
+    },
     editSlideClicked(slide) {
       this.editSlide = {
         number: slide.number,
-        title: slide.title,
-        items: [...slide.items],
+        title: slide.title || '',
+        items: slide.items ? [...slide.items] : [],
       };
     },
     addItemToSlide() {
@@ -201,6 +217,8 @@ export default {
         const newItem = { type: this.editSlideInputType };
 
         if (this.editSlideInputType === 'text') {
+          newItem.text = this.editSlideInputValue;
+        } else if (this.editSlideInputType === 'question') {
           newItem.text = this.editSlideInputValue;
         } else if (this.editSlideInputType === 'image') {
           newItem.image = this.editSlideInputValue;
@@ -230,3 +248,23 @@ export default {
   },
 };
 </script>
+
+<style lang="scss" scoped>
+.edit-slide {
+  padding: 4rem;
+  font-size: 2rem;
+
+  &__content {
+    text-align: left;
+  }
+
+  &__buttons {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  &__button {
+    font-size: 1.6rem;
+  }
+}
+</style>

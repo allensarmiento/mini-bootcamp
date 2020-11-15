@@ -17,6 +17,7 @@
       :show="showSidebar"
       :title="`${userProfile.name}'s Answers`"
       :items="sidebarItems"
+      @submitAnswer="submitAnswer"
     />
   </section>
 </template>
@@ -52,7 +53,6 @@ export default {
       sidebarItems: [],
 
       currentQuestion: '',
-      answerInput: '',
     };
   },
   computed: {
@@ -159,16 +159,15 @@ export default {
         displayItems: this.displayItems,
       });
     },
-    async submitAnswer() {
-      if (this.answerInput) {
-        this.sidebarItems.push({ text: this.answerInput });
+    async submitAnswer(answer) {
+      if (answer) {
+        this.sidebarItems.push({ text: answer });
         await submitAnswer({
           lessonNumber: this.lessonNumber,
           name: this.userProfile.name,
           question: this.currentQuestion,
-          answer: this.answerInput,
+          answer,
         });
-        this.answerInput = '';
       }
     },
   },

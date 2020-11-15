@@ -83,7 +83,11 @@ export default {
 
       return className;
     },
-    submitAnswer() {},
+    submitAnswer() {
+      // TODO: Test this works
+      this.$emit('submitAnswer', this.answerInput);
+      this.answerInput = '';
+    },
   },
 };
 </script>
