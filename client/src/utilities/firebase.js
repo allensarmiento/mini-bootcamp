@@ -20,3 +20,21 @@ export const auth = firebase.auth();
 
 // Collections
 export const usersCollection = db.collection('users');
+
+/**
+ * @param {string} userDoc
+ * @return {string} User's role
+ */
+export async function isAdmin(userDoc) {
+  let role = '';
+
+  const doc = await usersCollection.doc(userDoc).get();
+  if (!doc.exists) {
+    console.log('No such document!');
+  } else {
+    const data = doc.data();
+    role = data.role;
+  }
+
+  return role === 'admin';
+}

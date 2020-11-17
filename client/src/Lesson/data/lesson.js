@@ -16,6 +16,18 @@ export async function getLesson(number) {
   return lessonData;
 }
 
+export async function getReviewLesson(number) {
+  const lessonData = [];
+
+  const snapshot = await lessonDataCollection(number)
+    .where('showReview', '==', true)
+    .orderBy('number')
+    .get();
+
+  snapshot.forEach((doc) => lessonData.push({ ...doc.data() }));
+  return lessonData;
+}
+
 export async function submitAnswer({
   lessonNumber,
   name,
@@ -35,6 +47,7 @@ export async function updateSlide({
   slideNumber,
   title,
   items,
+  showReview,
 } = {}) {
   if (!lessonNumber || !slideNumber || !title || !items) return;
 
@@ -42,5 +55,10 @@ export async function updateSlide({
   // calling update.
   await lessonDataCollection(lessonNumber)
     .doc(slideNumber)
-    .set({ number: Number.parseInt(slideNumber, 10), title, items });
+    .set({
+      number: Number.parseInt(slideNumber, 10),
+      title,
+      items,
+      showReview,
+    });
 }

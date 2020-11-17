@@ -1,8 +1,7 @@
 import Vue from 'vue';
 import VueRouter from 'vue-router';
-import store from '../store'; // eslint-disable-line import/no-cycle
 import Dashboard from '../Dashboard/views/Dashboard.vue';
-import { auth } from '../utilities/firebase';
+import { auth, isAdmin } from '../utilities/firebase';
 
 Vue.use(VueRouter);
 
@@ -36,6 +35,16 @@ const routes = [
     },
   },
   {
+    path: '/lesson/:lessonNumber/review',
+    name: 'ReviewLesson',
+    component: () => import(
+      /* webpackChunkName: "reviewLesson" */ '../Lesson/views/Review.vue'
+    ),
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
     path: '/lesson/:lessonNumber/edit',
     name: 'EditLesson',
     component: () => import(
@@ -54,7 +63,9 @@ const router = new VueRouter({
   routes,
 });
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
+  document.title = 'Mini-Bootcamp';
+
   const requiresAuth = to.matched.some((x) => x.meta.requiresAuth);
   const requiresAdmin = to.matched.some((x) => x.meta.requiresAdmin);
 
@@ -66,10 +77,14 @@ router.beforeEach((to, from, next) => {
     next();
   } else if (requiresAuth && !auth.currentUser) {
     next('/login');
-  } else if (requiresAdmin && !store.getters.isAdmin) {
-    next('/');
+  } else if (requiresAdmin) {
+    const adminUser = await isAdmin(auth.currentUser.uid);
+    if (adminUser) {
+      next();
+    } else {
+      next('/');
+    }
   } else {
-    console.log('next');
     next();
   }
 });

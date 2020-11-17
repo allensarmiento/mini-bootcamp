@@ -10,7 +10,7 @@
     <img
       class="image-container__image"
       :style="imageStyle"
-      :src="value"
+      :src="value.image"
     />
   </div>
 

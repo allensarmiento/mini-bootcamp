@@ -6,7 +6,9 @@
       <div v-for="(displayItem, index) in displayItems" :key="index">
         <Content
           :type="displayItem.type"
-          :value="displayItem[slideValue(displayItem.type)]"
+          :value="displayItem.type !== 'image'
+                ? displayItem[slideValue(displayItem.type)]
+                : displayItem"
         />
       </div>
     </div>
@@ -26,6 +28,7 @@
 import { BJumbotron } from 'bootstrap-vue';
 import Content from './Content.vue';
 import AdminControls from './AdminControls.vue';
+import { getSlideValue } from '../utilities/slide';
 
 export default {
   name: 'Slide',
@@ -42,19 +45,7 @@ export default {
   },
   methods: {
     slideValue(type) {
-      let value = '';
-
-      if (type === 'text') {
-        value = 'text';
-      } else if (type === 'question') {
-        value = 'text';
-      } else if (type === 'image') {
-        value = 'image';
-      } else if (type === 'table') {
-        value = 'table';
-      }
-
-      return value;
+      return getSlideValue(type);
     },
     controlBackward() {
       this.$emit('slideBackward');

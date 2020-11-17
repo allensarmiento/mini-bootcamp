@@ -17,13 +17,19 @@
           Slide {{ slide.number }}: {{ slide.title }}
         </template>
 
+        <p>Show Review:&nbsp;
+          <span style="font-weight: 800;">{{ slide.showReview }}</span>
+        </p>
+
         <hr class="my-4" />
 
         <div class="edit-slide__content">
           <div v-for="(item, index) in slide.items" :key="index">
             <Content
               :type="item.type"
-              :value="item[slideValue(item.type)]"
+              :value="item.type !== 'image'
+                ? item[slideValue(item.type)]
+                : item"
             />
           </div>
         </div>
@@ -110,6 +116,16 @@
           <b-button variant="success" @click="addItemToSlide">Add</b-button>
         </b-form-group>
 
+        <b-form-checkbox
+          id="checkbox-1"
+          v-model="editSlide.showReview"
+          name="checkbox-1"
+          :value="true"
+          :unchecked-value="false"
+        >
+          Show In Review
+        </b-form-checkbox>
+
         <template #modal-footer>
           <div class="w-100">
             <b-button
@@ -146,6 +162,7 @@ import {
 } from 'bootstrap-vue';
 import Content from '../components/Content.vue';
 import { getLesson, updateSlide } from '../data/lesson';
+import { getSlideValue } from '../utilities/slide';
 
 export default {
   name: 'Edit',
@@ -178,20 +195,7 @@ export default {
   },
   methods: {
     slideValue(type) {
-      let value = '';
-
-      if (type === 'text') {
-        value = 'text';
-      } else if (type === 'question') {
-        value = 'text';
-      } else if (type === 'image') {
-        value = 'image';
-      } else if (type === 'table') {
-        value = 'table';
-      }
-
-      console.log(value);
-      return value;
+      return getSlideValue(type);
     },
     addSlideClicked() {
       this.editSlide = {
@@ -201,10 +205,12 @@ export default {
       };
     },
     editSlideClicked(slide) {
+      console.log(slide.showReview);
       this.editSlide = {
         number: slide.number,
         title: slide.title || '',
         items: slide.items ? [...slide.items] : [],
+        showReview: slide.showReview,
       };
     },
     addItemToSlide() {
@@ -240,6 +246,7 @@ export default {
           slideNumber: `${this.editSlide.number}`,
           title: this.editSlide.title,
           items: this.editSlide.items,
+          showReview: this.editSlide.showReview,
         });
 
         this.show = false;
