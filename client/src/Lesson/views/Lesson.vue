@@ -2,8 +2,15 @@
   <section class="lesson">
     <h1 class="lesson__title">Lesson {{ lessonNumber }}</h1>
 
+    <button
+      v-if="userProfile.role === 'admin'"
+      @click="screenShareClicked">Screen Share
+    </button>
+
+    <ScreenShare v-if="screenShareActive" />
+
     <Slide
-      v-if="slides.length"
+      v-if="slides.length && !screenShareActive"
       :title="slides[slideIndex].title"
       :displayItems="displayItems"
       :isAdmin="userProfile.role === 'admin'"
@@ -25,6 +32,7 @@
 <script>
 import { mapState } from 'vuex';
 import io from 'socket.io-client';
+import ScreenShare from '../components/ScreenShare.vue';
 import Slide from '../components/Slide.vue';
 import Sidebar from '../components/Sidebar.vue';
 import { getLesson, submitAnswer } from '../data/lesson';
@@ -35,6 +43,7 @@ const ENDPOINT = process.env.NODE_ENV === 'production'
 export default {
   name: 'Lesson',
   components: {
+    ScreenShare,
     Slide,
     Sidebar,
   },
@@ -53,6 +62,8 @@ export default {
       sidebarItems: [],
 
       currentQuestion: '',
+
+      screenShareActive: false,
     };
   },
   computed: {
@@ -67,10 +78,18 @@ export default {
     this.slides = await getLesson(this.lessonNumber);
   },
   methods: {
+    screenShareClicked() {
+      this.screenShareActive = !this.screenShareActive;
+      this.socket.emit('screenshare', this.screenShareActive);
+    },
     initializeSocket() {
       this.socket = io(ENDPOINT);
 
       this.socket.on('connect', () => console.log('connected'));
+
+      this.socket.on('screenShareActive', (value) => {
+        this.screenShareActive = value;
+      });
 
       this.socket.on('toggleSidebar', (value) => {
         this.showSidebar = value;
