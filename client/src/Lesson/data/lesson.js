@@ -47,7 +47,7 @@ export async function updateSlide({
   slideNumber,
   title,
   items,
-  showReview,
+  showReview = false,
 } = {}) {
   if (!lessonNumber || !slideNumber || !title || !items) return;
 
