@@ -67,8 +67,8 @@ export default {
   components: { LessonLink, SignupForm },
   data() {
     return {
-      lessons: [1, 2, 3, 4],
-      reviewLessons: [1, 2, 3, 4],
+      lessons: [1, 2, 3, 4, 5],
+      reviewLessons: [1, 2, 3, 4, 5],
     };
   },
   computed: mapState(['userProfile']),

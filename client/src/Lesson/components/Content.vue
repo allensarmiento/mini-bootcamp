@@ -10,7 +10,7 @@
     <img
       class="image-container__image"
       :style="imageStyle"
-      :src="value.image"
+      :src="imageValue(value.image)"
     />
   </div>
 
@@ -44,6 +44,19 @@ export default {
     },
     isTable() {
       return this.type === 'table';
+    },
+  },
+  methods: {
+    imageValue(image) {
+      let value;
+
+      if (image === 'basic-navbar.png') {
+        value = require('../assets/basic-navbar.png'); // eslint-disable-line global-require
+      } else {
+        value = image;
+      }
+
+      return value;
     },
   },
 };
