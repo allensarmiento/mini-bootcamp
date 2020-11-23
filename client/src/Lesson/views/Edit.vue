@@ -44,7 +44,11 @@
             Edit
           </BButton>
 
-          <BButton class="edit-slide__button" variant="warning">
+          <BButton
+            class="edit-slide__button"
+            variant="warning"
+            @click="deleteSlide(slide.number)"
+          >
             Delete
           </BButton>
         </div>
@@ -161,7 +165,7 @@ import {
   BFormInput,
 } from 'bootstrap-vue';
 import Content from '../components/Content.vue';
-import { getLesson, updateSlide } from '../data/lesson';
+import { getLesson, updateSlide, deleteSlide } from '../data/lessonRTD';
 import { getSlideValue } from '../utilities/slide';
 
 export default {
@@ -249,8 +253,14 @@ export default {
           showReview: this.editSlide.showReview,
         });
 
+        this.slides = await getLesson(this.lessonNumber);
+
         this.show = false;
       }
+    },
+    async deleteSlide(slideNumber) {
+      await deleteSlide(this.lessonNumber, slideNumber);
+      this.slides = await getLesson(this.lessonNumber);
     },
   },
 };

@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
 import router from '../router'; // eslint-disable-line import/no-cycle
-import * as fb from '../utilities/firebase';
+import * as fb from '../utilities/firebaseRTD';
 
 Vue.use(Vuex);
 
@@ -30,10 +30,10 @@ const store = new Vuex.Store({
     },
     async fetchUserProfile({ commit }, user) {
       // Fetch user profile.
-      const userProfile = await fb.usersCollection.doc(user.uid).get();
+      const userProfile = await fb.getUser(user.uid);
 
       // Set user profile in state.
-      commit('setUserProfile', userProfile.data());
+      commit('setUserProfile', userProfile);
 
       // Change route to dashboard.
       if (router.currentRoute.path === '/login') {
@@ -46,11 +46,8 @@ const store = new Vuex.Store({
         const { user } = await fb.auth
           .createUserWithEmailAndPassword(form.email, form.password);
 
-        // Create user profile object in userCollection.
-        await fb.usersCollection.doc(user.uid).set({
-          name: form.name,
-          role: 'member',
-        });
+        // Create user profile object.
+        await fb.createUser(user.uid, form.name, 'member');
 
         // Note: Since the signup form is only available for an admin,
         // don't dispatch fetching user's profile.

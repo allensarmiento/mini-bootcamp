@@ -35,7 +35,7 @@ import io from 'socket.io-client';
 import ScreenShare from '../components/ScreenShare.vue';
 import Slide from '../components/Slide.vue';
 import Sidebar from '../components/Sidebar.vue';
-import { getLesson, submitAnswer } from '../data/lesson';
+import { getLesson, submitAnswer } from '../data/lessonRTD';
 
 const ENDPOINT = process.env.NODE_ENV === 'production'
   ? process.env.VUE_APP_ENDPOINT : 'http://localhost:5000/';
@@ -76,6 +76,7 @@ export default {
     this.initializeSocket();
 
     this.slides = await getLesson(this.lessonNumber);
+    console.log(this.slides);
   },
   methods: {
     screenShareClicked() {

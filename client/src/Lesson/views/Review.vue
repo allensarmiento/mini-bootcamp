@@ -31,7 +31,7 @@ import {
   BJumbotron,
 } from 'bootstrap-vue';
 import Content from '../components/Content.vue';
-import { getReviewLesson } from '../data/lesson';
+import { getReviewLesson } from '../data/lessonRTD';
 import { getSlideValue } from '../utilities/slide';
 
 export default {

@@ -61,17 +61,26 @@
 import { mapState } from 'vuex';
 import LessonLink from '../components/LessonLink.vue';
 import SignupForm from '../components/SignupForm.vue';
+import { getLessons } from '../data/lessons';
 
 export default {
   name: 'Dashboard',
   components: { LessonLink, SignupForm },
   data() {
     return {
-      lessons: [1, 2, 3, 4, 5],
-      reviewLessons: [1, 2, 3, 4, 5],
+      lessons: [],
+      reviewLessons: [],
     };
   },
   computed: mapState(['userProfile']),
+  async mounted() {
+    const data = await getLessons();
+
+    for (let i = 0; i < data.length; i += 1) {
+      this.lessons.push(i + 1);
+      this.reviewLessons.push(i + 1);
+    }
+  },
 };
 </script>
 
