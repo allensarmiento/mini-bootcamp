@@ -1,0 +1,75 @@
+<template>
+  <div class="controls">
+    <section class="controls__video">
+      <ControlsButton @click="toggleScreenShare">
+        Video
+      </ControlsButton>
+
+      <ControlsButton>
+        Mute
+      </ControlsButton>
+
+      <ControlsButton>
+        Screen
+      </ControlsButton>
+    </section>
+
+    <section v-if="userProfile.role === 'admin'" class="controls__admin">
+      <ControlsButton @click="slideBackward">
+        &larr;
+      </ControlsButton>
+
+      <ControlsButton @click="toggleScreenShare">
+        Screen Share
+      </ControlsButton>
+
+      <ControlsButton @click="toggleSidebar">
+        Sidebar
+      </ControlsButton>
+
+      <ControlsButton @click="slideForward">
+        &rarr;
+      </ControlsButton>
+    </section>
+  </div>
+</template>
+
+<script>
+import { mapState } from 'vuex';
+import ControlsButton from './ControlsButton.vue';
+
+export default {
+  name: 'UserControls',
+  components: { ControlsButton },
+  props: {
+    expanded: { type: String, default: 'false' },
+  },
+  computed: {
+    ...mapState(['userProfile']),
+  },
+  methods: {
+    toggleScreenShare() {
+      this.$emit('toggleScreenShare');
+    },
+    slideBackward() {
+      this.$emit('slideBackward');
+    },
+    toggleSidebar() {
+      this.$emit('toggleSidebar');
+    },
+    slideForward() {
+      this.$emit('slideForward');
+    },
+  },
+};
+</script>
+
+<style lang="scss" scoped>
+.controls {
+  display: flex;
+  justify-content: space-between;
+
+  padding: 2rem 4rem;
+  background: var(--primary-color);
+}
+</style>

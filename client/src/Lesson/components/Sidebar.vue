@@ -1,11 +1,11 @@
 <template>
+  <!-- NOTE: add right below to put sidebar to right -->
   <BSidebar
     v-model="show"
     id="sidebar-right"
     class="sidebar"
     :title="title"
     no-header
-    right
     shadow
   >
     <div class="sidebar__container px-3 py-4">

@@ -1,41 +1,24 @@
 <template>
-  <BJumbotron class="slide" container-fluid>
-    <h2 class="slide__title">{{ title }}</h2>
-
-    <div class="slide__content">
-      <div v-for="(displayItem, index) in displayItems" :key="index">
-        <Content
-          :type="displayItem.type"
-          :value="displayItem.type !== 'image'
-                ? displayItem[slideValue(displayItem.type)]
-                : displayItem"
-        />
-      </div>
+  <div class="slide__content">
+    <div v-for="(displayItem, index) in displayItems" :key="index">
+      <Content
+        :type="displayItem.type"
+        :value="displayItem.type !== 'image'
+              ? displayItem[slideValue(displayItem.type)]
+              : displayItem"
+      />
     </div>
-
-    <AdminControls
-      v-if="isAdmin"
-      :expanded="`${showSidebar}`"
-      @slideBackward="controlBackward"
-      @toggleSidebar="controlSidebar"
-      @slideForward="controlForward"
-    />
-    <div v-else><!-- Empty container used for grid --></div>
-  </BJumbotron>
+  </div>
 </template>
 
 <script>
-import { BJumbotron } from 'bootstrap-vue';
 import Content from './Content.vue';
-import AdminControls from './AdminControls.vue';
 import { getSlideValue } from '../utilities/slide';
 
 export default {
   name: 'Slide',
   components: {
-    BJumbotron,
     Content,
-    AdminControls,
   },
   props: {
     title: { type: String, default: '' },

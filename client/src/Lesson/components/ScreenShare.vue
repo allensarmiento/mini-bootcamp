@@ -144,6 +144,10 @@ export default {
   beforeDestroy() {
     console.log('BEFORE UNMOUNTING');
 
+    if (this.localStreams.screen.id && this.localStreams.screen.stream) {
+      this.stopScreenShare();
+    }
+
     this.screenClient.leave(() => {
       console.log('Client leaving the channel');
     }, (error) => {
@@ -244,7 +248,8 @@ export default {
 <style lang="scss">
 .remote-screen-streams {
   background: var(--primary-text);
-  height: 90vh;
+  // height: 90vh;
+  height: 100%;
   max-width: 100%;
 
   .remote-screen-stream {

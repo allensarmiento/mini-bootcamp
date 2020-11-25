@@ -2,23 +2,30 @@
   <section class="lesson">
     <h1 class="lesson__title">Lesson {{ lessonNumber }}</h1>
 
-    <button
-      v-if="userProfile.role === 'admin'"
-      @click="screenShareClicked">Screen Share
-    </button>
+    <BJumbotron class="slide" continer-fluid>
+      <div><!-- --></div>
+      <ScreenShare v-if="screenShareActive" />
 
-    <ScreenShare v-if="screenShareActive" />
+      <h2 v-if="!screenShareActive && slides.length" class="slide__title">
+        {{ slides[slideIndex].title }}
+      </h2>
 
-    <Slide
-      v-if="slides.length && !screenShareActive"
-      :title="slides[slideIndex].title"
-      :displayItems="displayItems"
-      :isAdmin="userProfile.role === 'admin'"
-      :showSidebar="showSidebar"
-      @slideBackward="slideBackward"
-      @toggleSidebar="toggleSidebar"
-      @slideForward="slideForward"
-    />
+      <Slide
+        v-if="!screenShareActive && slides.length"
+        :title="slides[slideIndex].title"
+        :displayItems="displayItems"
+      />
+
+      <UserControls
+        :expanded="`${showSidebar}`"
+        @toggleScreenShare="screenShareClicked"
+        @slideBackward="slideBackward"
+        @toggleSidebar="toggleSidebar"
+        @slideForward="slideForward"
+      />
+    </BJumbotron>
+
+    <Video class="video" />
 
     <Sidebar
       :show="showSidebar"
@@ -32,9 +39,12 @@
 <script>
 import { mapState } from 'vuex';
 import io from 'socket.io-client';
+import { BJumbotron } from 'bootstrap-vue';
 import ScreenShare from '../components/ScreenShare.vue';
+import Video from '../components/Video.vue';
 import Slide from '../components/Slide.vue';
 import Sidebar from '../components/Sidebar.vue';
+import UserControls from '../components/UserControls.vue';
 import { getLesson, submitAnswer } from '../data/lessonRTD';
 
 const ENDPOINT = process.env.NODE_ENV === 'production'
@@ -43,9 +53,12 @@ const ENDPOINT = process.env.NODE_ENV === 'production'
 export default {
   name: 'Lesson',
   components: {
+    BJumbotron,
     ScreenShare,
+    Video,
     Slide,
     Sidebar,
+    UserControls,
   },
   data() {
     return {
@@ -195,7 +208,61 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-::v-deep .slide {
+.lesson {
+  display: grid;
+  grid-template-rows: [title-start] min-content [title-end
+                      main-start] 1fr [main-end];
+  grid-template-columns: [main-start] 1fr [main-end
+                         video-start] 30rem [video-end];
+
+  &__title {
+    grid-row: title-start / title-end;
+    grid-column: main-start / main-end;
+  }
+}
+
+.slide {
   grid-row: main-start / main-end;
+  grid-column: main-start / main-end;
+
+  display: grid;
+  grid-template-rows: [title-start] min-content [title-end
+                      main-start] 1fr [main-end
+                      controls-start] min-content [controls-end];
+
+  padding: 0;
+  height: 90vh;
+  background-color: var(--light-primary-color);
+  color: var(--primary-text);
+
+  &__title {
+    grid-row: title-start / title-end;
+    padding: 1rem 2rem;
+    font-size: 3.6rem;
+    text-align: left;
+    color: currentColor;
+  }
+}
+
+.video {
+  grid-row: main-start / main-end;
+  grid-column: video-start / video-end;
+
+  display: flex;
+  flex-direction: column;
+
+  &__container {
+    width: 94%;
+    height: 18rem;
+
+    margin: .8rem;
+
+    background: rgb(60, 60, 60);
+    border-radius: 4px;
+  }
+}
+
+::v-deep .controls {
+  grid-row: controls-start / controls-end;
 }
 </style>
