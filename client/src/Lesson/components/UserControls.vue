@@ -9,9 +9,9 @@
         {{ audioOn ? 'Mute' : 'Unmute' }}
       </ControlsButton>
 
-      <ControlsButton>
+      <!-- <ControlsButton>
         Screen
-      </ControlsButton>
+      </ControlsButton> -->
     </section>
 
     <section v-if="userProfile.role === 'admin'" class="controls__admin">

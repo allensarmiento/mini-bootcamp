@@ -1,9 +1,16 @@
 <template>
   <div class="dashboard">
+    <router-link
+      :to="`/lesson/${1}`"
+      tag="button"
+      :disabled="joinRoomDisabled"
+    >
+      Join Room
+    </router-link>
+
     <div class="dashboard__main-container">
-      <div class="dashboard__lesson-container">
+      <!-- <div class="dashboard__lesson-container">
         <h2>Lessons</h2>
-        <!-- Lessons -->
         <section class="dashboard__lessons">
           <LessonLink
             v-for="lessonNumber in lessons"
@@ -14,7 +21,7 @@
             :text="`Lesson ${lessonNumber}`"
           />
         </section>
-      </div>
+      </div> -->
 
       <!-- Review Lessons -->
       <div class="dashboard__lesson-container">
@@ -59,9 +66,13 @@
 
 <script>
 import { mapState } from 'vuex';
+import io from 'socket.io-client';
 import LessonLink from '../components/LessonLink.vue';
 import SignupForm from '../components/SignupForm.vue';
 import { getLessons } from '../data/lessons';
+
+const ENDPOINT = process.env.NODE_ENV === 'production'
+  ? process.env.VUE_APP_ENDPOINT : 'http://localhost:5000/';
 
 export default {
   name: 'Dashboard',
@@ -70,9 +81,25 @@ export default {
     return {
       lessons: [],
       reviewLessons: [],
+
+      socket: null,
+      canJoin: false,
     };
   },
-  computed: mapState(['userProfile']),
+  computed: {
+    ...mapState(['userProfile']),
+    joinRoomDisabled() {
+      let disabled = true;
+
+      if (this.userProfile.role === 'admin') {
+        disabled = false;
+      } else if (this.canJoin) {
+        disabled = false;
+      }
+
+      return disabled;
+    },
+  },
   async mounted() {
     const data = await getLessons();
 
@@ -80,6 +107,25 @@ export default {
       this.lessons.push(i + 1);
       this.reviewLessons.push(i + 1);
     }
+
+    this.initializeSocket();
+  },
+  methods: {
+    initializeSocket() {
+      this.socket = io(ENDPOINT);
+
+      this.socket.on('connect', () => {
+        console.log('connected');
+        if (this.userProfile.role !== 'admin') {
+          this.socket.emit('userConnected');
+        }
+      });
+
+      this.socket.on('canJoin', (value) => {
+        this.canJoin = value;
+        console.log(this.canJoin);
+      });
+    },
   },
 };
 </script>

@@ -3,7 +3,7 @@
     <h1 class="lesson__title">Lesson {{ lessonNumber }}</h1>
 
     <BJumbotron class="slide" continer-fluid>
-      <div><!-- --></div>
+      <div v-if="screenShareActive"><!-- --></div>
       <ScreenShare v-if="screenShareActive" />
 
       <h2 v-if="!screenShareActive && slides.length" class="slide__title">
@@ -97,6 +97,12 @@ export default {
     this.slides = await getLesson(this.lessonNumber);
     console.log(this.slides);
   },
+  beforeDestroy() {
+    console.log('Stopping users from joining');
+    if (this.userProfile.role === 'admin') {
+      this.socket.emit('canJoin', false);
+    }
+  },
   methods: {
     toggleVideo() {
       this.videoOn = !this.videoOn;
@@ -111,7 +117,23 @@ export default {
     initializeSocket() {
       this.socket = io(ENDPOINT);
 
-      this.socket.on('connect', () => console.log('connected'));
+      this.socket.on('connect', () => {
+        console.log('connected');
+        if (this.userProfile.role === 'admin') {
+          this.socket.emit('canJoin', true);
+        } else {
+          this.socket.emit('userConnected');
+        }
+      });
+
+      this.socket.on('canJoin', (value) => {
+        console.log('can join received');
+        if (this.userProfile.role !== 'admin') {
+          if (!value) {
+            this.$router.push('/');
+          }
+        }
+      });
 
       this.socket.on('screenShareActive', (value) => {
         this.screenShareActive = value;

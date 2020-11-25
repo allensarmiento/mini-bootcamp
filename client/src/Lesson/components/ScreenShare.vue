@@ -1,32 +1,28 @@
 <template>
   <section class="screen-share">
-    <button
-      v-if="userProfile.role === 'admin'"
-      @click="createScreenStream"
-    >
-      Share Screen
-    </button>
-
-    <button
-      v-if="userProfile.role === 'admin'"
-      @click="stopScreenShare"
-    >
-      Stop Screen Share
-    </button>
-
     <div class="remote-screen-streams"></div>
 
-    <!-- <div id="local-screenshare"></div> -->
+    <section class="screen-share__controls">
+      <ControlsButton v-if="!screenShareActive" @click="createScreenStream">
+        Share Screen
+      </ControlsButton>
+      <ControlsButton v-else @click="stopScreenShare">
+        Stop Share Screen
+      </ControlsButton>
+    </section>
   </section>
 </template>
 
 <script>
 import { mapState } from 'vuex';
 import AgoraRTC from 'agora-rtc-sdk';
+import ControlsButton from './ControlsButton.vue';
 import { fetchAccessToken } from '../data/video';
+import { getUser } from '../../utilities/firebaseRTD';
 
 export default {
   name: 'ScreenShare',
+  components: { ControlsButton },
   data() {
     return {
       screenClient: AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' }),
@@ -67,6 +63,8 @@ export default {
 
       this.localStreams.screen.id = '';
       this.localStreams.screen.stream = {};
+
+      this.screenShareActive = false;
     });
 
     // REMOTE
@@ -114,19 +112,25 @@ export default {
       }
     });
 
-    this.screenClient.on('stream-subscribed', (event) => {
+    this.screenClient.on('stream-subscribed', async (event) => {
       const remoteStream = event.stream;
       const remoteId = remoteStream.getId();
 
       this.remoteStreams[remoteId] = remoteStream;
       console.log(`Subscribed to remote stream successfully: ${remoteId}`);
 
+      const userProfile = await getUser(remoteId);
+
       document.querySelector('.remote-screen-streams')
         .insertAdjacentHTML('beforeend', `
           <div
             id="remote-screen-stream-${remoteId}"
             class="remote-screen-stream"
-          ></div>
+          >
+            <span class="remote-screen-stream__user>
+              ${userProfile.name || 'Anonymous User'}
+            </span>
+          </div>
         `);
 
       remoteStream.play(`remote-screen-stream-${remoteId}`, {
@@ -167,7 +171,9 @@ export default {
       });
     },
     joinChannel() {
-      this.screenClient.join(this.token, this.channel, null, (uid) => {
+      const userId = this.userProfile.uid || null;
+
+      this.screenClient.join(this.token, this.channel, userId, (uid) => {
         console.log(`User ${uid} joined ${this.channel} successfully`);
         this.uid = uid;
       }, (error) => {
@@ -240,21 +246,42 @@ export default {
       this.screenClient.unpublish(this.localStreams.screen.stream, (error) => {
         console.log(`[ERROR] Unpublish stream failed: ${error}`);
       });
+
+      this.screenShareActive = false;
     },
   },
 };
 </script>
 
 <style lang="scss">
+.screen-share {
+  position: relative;
+
+  &__controls {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+  }
+}
+
 .remote-screen-streams {
-  background: var(--primary-text);
-  // height: 90vh;
-  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, 1fr);
+
+  height: 82vh;
+  // height: 100%;
   max-width: 100%;
 
+  background: var(--primary-text);
+  overflow: auto;
+
   .remote-screen-stream {
-    height: inherit;
-    max-width: 100%;
+    flex: 1;
+    width: 100%;
+
+    &__user {
+      color: white;
+    }
 
     video {
       position: initial !important;

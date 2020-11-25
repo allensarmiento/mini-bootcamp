@@ -87,6 +87,7 @@ server.listen(port)
 const io = require('socket.io')(server, {});
 
 const SOCKET_LIST = {};
+let canJoin = false;
 
 io.sockets.on('connection', socket => {
   socket.id = Math.random()
@@ -95,6 +96,29 @@ io.sockets.on('connection', socket => {
   }
   SOCKET_LIST[socket.id] = socket
   console.log('client connected');
+
+  socket.on('userConnected', () => {
+    console.log('user connected');
+    for (let i in SOCKET_LIST) {
+      const socket = SOCKET_LIST[i];
+      socket.emit('canJoin', canJoin);
+    }
+  });
+
+  socket.on('canJoin', (value) => {
+    for (let i in SOCKET_LIST) {
+      const socket = SOCKET_LIST[i];
+      canJoin = value;
+      socket.emit('canJoin', value);
+    }
+  });
+
+  socket.on('adminLeft', () => {
+    for (let i in SOCKET_LIST) {
+      const socket = SOCKET_LIST[i];
+      socket.emit('adminLeft');
+    }
+  });
 
   socket.on('screenshare', (value) => {
     for (let i in SOCKET_LIST) {
