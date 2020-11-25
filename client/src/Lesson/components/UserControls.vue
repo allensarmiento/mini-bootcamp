@@ -9,6 +9,10 @@
         {{ audioOn ? 'Mute' : 'Unmute' }}
       </ControlsButton>
 
+      <ControlsButton @click="leave">
+        Leave
+      </ControlsButton>
+
       <!-- <ControlsButton>
         Screen
       </ControlsButton> -->
@@ -55,6 +59,9 @@ export default {
     },
     toggleAudio() {
       this.$emit('toggleAudio');
+    },
+    leave() {
+      this.$emit('leave');
     },
     toggleScreenShare() {
       this.$emit('toggleScreenShare');

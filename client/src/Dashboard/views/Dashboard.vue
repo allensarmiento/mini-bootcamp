@@ -115,10 +115,7 @@ export default {
       this.socket = io(ENDPOINT);
 
       this.socket.on('connect', () => {
-        console.log('connected');
-        if (this.userProfile.role !== 'admin') {
-          this.socket.emit('userConnected');
-        }
+        console.log('connected dashboard');
       });
 
       this.socket.on('canJoin', (value) => {

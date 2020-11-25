@@ -17,6 +17,7 @@ export default {
   props: {
     videoOn: { type: Boolean, default: false },
     audioOn: { type: Boolean, default: false },
+    leave: { type: Boolean, default: false },
   },
   computed: {
     ...mapState(['userProfile']),
@@ -42,11 +43,28 @@ export default {
         && this.localStreams.camera.id
         && this.localStreams.camera.stream
       ) {
-        // this.localStreams.camera.stream.setAudioVolume(50);
         this.localStreams.camera.stream.unmuteAudio();
       } else {
-        // this.localStreams.camera.stream.setAudioVolume(0);
         this.localStreams.camera.stream.muteAudio();
+      }
+    },
+    async leave(val) {
+      if (val) {
+        if (this.localStreams.camera.id && this.localStreams.camera.stream) {
+          console.log('stopping camera');
+          await this.stopCamera();
+
+          this.localStreams.camera.id = '';
+          this.localStreams.camera.stream = {};
+        }
+
+        await this.client.leave(() => {
+          console.log('Client leaving the channel');
+        }, (error) => {
+          console.log(`[ERROR] Client leave failed: ${error}`);
+        });
+
+        this.$router.push('/');
       }
     },
   },
@@ -161,14 +179,15 @@ export default {
 
     this.initClientAndJoinChannel();
   },
-  beforeDestroy() {
+  async beforeDestroy() {
     console.log('BEFORE UNMOUNTING');
 
     if (this.localStreams.camera.id && this.localStreams.camera.stream) {
-      this.stopCamera();
+      console.log('stopping camera');
+      await this.stopCamera();
     }
 
-    this.client.leave(() => {
+    await this.client.leave(() => {
       console.log('Client leaving the channel');
     }, (error) => {
       console.log(`[ERROR] Client leave failed: ${error}`);
@@ -251,10 +270,11 @@ export default {
         });
       }
     },
-    stopCamera() {
-      this.localStreams.camera.stream.getVideoTrack().stop();
+    async stopCamera() {
+      this.localStreams.camera.stream.stop();
+      this.localStreams.camera.stream.close();
 
-      this.client.unpublish(this.localStreams.camera.stream, (error) => {
+      await this.client.unpublish(this.localStreams.camera.stream, (error) => {
         console.log(`[ERROR] Unpublish stream failed: ${error}`);
       });
     },

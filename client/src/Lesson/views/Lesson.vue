@@ -22,6 +22,7 @@
         :audioOn="audioOn"
         @toggleVideo="toggleVideo"
         @toggleAudio="toggleAudio"
+        @leave="leaveClicked"
         @toggleScreenShare="screenShareClicked"
         @slideBackward="slideBackward"
         @toggleSidebar="toggleSidebar"
@@ -29,7 +30,12 @@
       />
     </BJumbotron>
 
-    <Video class="video" :videoOn="videoOn" :audioOn="audioOn" />
+    <Video
+      class="video"
+      :videoOn="videoOn"
+      :audioOn="audioOn"
+      :leave="leave"
+    />
 
     <Sidebar
       :show="showSidebar"
@@ -83,6 +89,7 @@ export default {
       screenShareActive: false,
       videoOn: true,
       audioOn: true,
+      leave: false,
     };
   },
   computed: {
@@ -110,6 +117,9 @@ export default {
     toggleAudio() {
       this.audioOn = !this.audioOn;
     },
+    leaveClicked() {
+      this.leave = true;
+    },
     screenShareClicked() {
       this.screenShareActive = !this.screenShareActive;
       this.socket.emit('screenshare', this.screenShareActive);
@@ -118,11 +128,9 @@ export default {
       this.socket = io(ENDPOINT);
 
       this.socket.on('connect', () => {
-        console.log('connected');
+        console.log('connected lesson');
         if (this.userProfile.role === 'admin') {
           this.socket.emit('canJoin', true);
-        } else {
-          this.socket.emit('userConnected');
         }
       });
 
