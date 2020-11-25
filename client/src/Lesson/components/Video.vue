@@ -7,11 +7,49 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import AgoraRTC from 'agora-rtc-sdk';
 import { fetchAccessToken } from '../data/video';
+import { getUser } from '../../utilities/firebaseRTD';
 
 export default {
   name: 'Video',
+  props: {
+    videoOn: { type: Boolean, default: false },
+    audioOn: { type: Boolean, default: false },
+  },
+  computed: {
+    ...mapState(['userProfile']),
+  },
+  watch: {
+    videoOn(val) {
+      if (
+        val
+        && this.localStreams.camera.id
+        && this.localStreams.camera.stream
+      ) {
+        // this.publish();
+        this.localStreams.camera.stream.unmuteVideo();
+      } else {
+        // this.unpublish();
+        this.localStreams.camera.stream.muteVideo();
+      }
+    },
+    audioOn(val) {
+      console.log(`audioOn: ${val}`);
+      if (
+        val
+        && this.localStreams.camera.id
+        && this.localStreams.camera.stream
+      ) {
+        // this.localStreams.camera.stream.setAudioVolume(50);
+        this.localStreams.camera.stream.unmuteAudio();
+      } else {
+        // this.localStreams.camera.stream.setAudioVolume(0);
+        this.localStreams.camera.stream.muteAudio();
+      }
+    },
+  },
   data() {
     return {
       client: AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' }),
@@ -41,8 +79,18 @@ export default {
     this.client.on('stream-unpublished', () => {
       console.log('Local stream unpublished');
 
-      this.localStreams.camera.id = '';
-      this.localStreams.camera.stream = {};
+      // this.localStreams.camera.id = '';
+      // this.localStreams.camera.stream = {};
+    });
+
+    this.client.on('mute-audio', (event) => {
+      const { uid } = event;
+      console.log(`Mute audio: ${uid}`);
+    });
+
+    this.client.on('unmute-audio', (event) => {
+      const { uid } = event;
+      console.log(`Unmute audio: ${uid}`);
     });
 
     // REMOTE
@@ -84,19 +132,23 @@ export default {
       });
     });
 
-    this.client.on('stream-subscribed', (event) => {
+    this.client.on('stream-subscribed', async (event) => {
       const remoteStream = event.stream;
       const remoteId = remoteStream.getId();
 
       this.remoteStreams[remoteId] = remoteStream;
       console.log(`Subscribed to remote stream successfully: ${remoteId}`);
 
+      const userProfile = await getUser(remoteId);
+
       document.querySelector('.remote-streams')
         .insertAdjacentHTML('beforeend', `
           <div
             id="remote-stream-${remoteId}"
             class="remote-stream"
-          ></div>
+          >
+            <span>${userProfile.name || 'Anonymous User'}</span>
+          </div>
         `);
 
       remoteStream.play(`remote-stream-${remoteId}`, { fit: 'contain' });
@@ -119,7 +171,7 @@ export default {
     this.client.leave(() => {
       console.log('Client leaving the channel');
     }, (error) => {
-      console.log(`[ERROR] Clietn leave failed: ${error}`);
+      console.log(`[ERROR] Client leave failed: ${error}`);
     });
   },
   methods: {
@@ -135,7 +187,9 @@ export default {
       });
     },
     joinChannel() {
-      this.client.join(this.token, this.channel, null, (uid) => {
+      const userId = this.userProfile.uid || null;
+
+      this.client.join(this.token, this.channel, userId, (uid) => {
         console.log(`User ${uid} joined ${this.channel} successfully`);
         this.uid = uid;
         this.createCameraStream();
@@ -147,8 +201,8 @@ export default {
       if (this.uid) {
         const localStream = AgoraRTC.createStream({
           streamID: this.uid,
-          audio: false,
-          video: true,
+          audio: this.audioOn,
+          video: this.videoOn,
           screen: false,
         });
 
@@ -162,7 +216,9 @@ export default {
               <div
                 id="local-stream-${localStream.getId()}"
                 class="local-stream"
-              ></div>
+              >
+                <span>${this.userProfile.name || 'Anonymous User'}</span>
+              </div>
             `);
 
           localStream.play(`local-stream-${localStream.getId()}`, {
@@ -184,8 +240,8 @@ export default {
                   console.log(`[ERROR] Unpublish stream failed: ${error}`);
                 });
 
-              this.localStreams.camera.id = '';
-              this.localStreams.camera.stream = {};
+              // this.localStreams.camera.id = '';
+              // this.localStreams.camera.stream = {};
             };
         }, (error) => {
           console.log(`[ERROR] getScreen failed: ${error}`);
@@ -201,6 +257,30 @@ export default {
       this.client.unpublish(this.localStreams.camera.stream, (error) => {
         console.log(`[ERROR] Unpublish stream failed: ${error}`);
       });
+    },
+
+    publish() {
+      const { id, stream } = this.localStreams.camera;
+
+      stream.play(`local-stream-${id}`, { fit: 'contain' });
+
+      this.client.publish(stream, (error) => {
+        console.log(`[ERROR] Publishing local stream error ${error}`);
+      });
+
+      stream.getVideoTrack()
+        .onended = () => {
+          this.client
+            .unpublish(stream, (error) => {
+              console.log(`[ERROR] Unpublish stream failed: ${error}`);
+            });
+        };
+    },
+    unpublish() {
+      this.client
+        .unpublish(this.localStreams.camera.stream, (error) => {
+          console.log(`[ERROR] Unpublish stream failed: ${error}`);
+        });
     },
   },
 };

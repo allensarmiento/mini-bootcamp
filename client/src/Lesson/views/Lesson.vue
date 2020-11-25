@@ -18,6 +18,10 @@
 
       <UserControls
         :expanded="`${showSidebar}`"
+        :videoOn="videoOn"
+        :audioOn="audioOn"
+        @toggleVideo="toggleVideo"
+        @toggleAudio="toggleAudio"
         @toggleScreenShare="screenShareClicked"
         @slideBackward="slideBackward"
         @toggleSidebar="toggleSidebar"
@@ -25,7 +29,7 @@
       />
     </BJumbotron>
 
-    <Video class="video" />
+    <Video class="video" :videoOn="videoOn" :audioOn="audioOn" />
 
     <Sidebar
       :show="showSidebar"
@@ -77,6 +81,8 @@ export default {
       currentQuestion: '',
 
       screenShareActive: false,
+      videoOn: true,
+      audioOn: true,
     };
   },
   computed: {
@@ -92,6 +98,12 @@ export default {
     console.log(this.slides);
   },
   methods: {
+    toggleVideo() {
+      this.videoOn = !this.videoOn;
+    },
+    toggleAudio() {
+      this.audioOn = !this.audioOn;
+    },
     screenShareClicked() {
       this.screenShareActive = !this.screenShareActive;
       this.socket.emit('screenshare', this.screenShareActive);

@@ -31,6 +31,7 @@ const store = new Vuex.Store({
     async fetchUserProfile({ commit }, user) {
       // Fetch user profile.
       const userProfile = await fb.getUser(user.uid);
+      userProfile.uid = user.uid;
 
       // Set user profile in state.
       commit('setUserProfile', userProfile);

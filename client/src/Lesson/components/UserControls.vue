@@ -1,12 +1,12 @@
 <template>
   <div class="controls">
     <section class="controls__video">
-      <ControlsButton @click="toggleScreenShare">
-        Video
+      <ControlsButton @click="toggleVideo">
+        {{ videoOn ? 'Stop Video' : 'Start Video' }}
       </ControlsButton>
 
-      <ControlsButton>
-        Mute
+      <ControlsButton @click="toggleAudio">
+        {{ audioOn ? 'Mute' : 'Unmute' }}
       </ControlsButton>
 
       <ControlsButton>
@@ -43,11 +43,19 @@ export default {
   components: { ControlsButton },
   props: {
     expanded: { type: String, default: 'false' },
+    videoOn: { type: Boolean, default: false },
+    audioOn: { type: Boolean, default: false },
   },
   computed: {
     ...mapState(['userProfile']),
   },
   methods: {
+    toggleVideo() {
+      this.$emit('toggleVideo');
+    },
+    toggleAudio() {
+      this.$emit('toggleAudio');
+    },
     toggleScreenShare() {
       this.$emit('toggleScreenShare');
     },
