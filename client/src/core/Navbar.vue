@@ -1,5 +1,5 @@
 <template>
-  <BNavbar class="navbar" toggleable="lg" type="dark">
+  <BNavbar class="navbar" toggleable="sm" type="dark">
     <BNavbarBrand class="navbar__brand">
       Mini Bootcamp
     </BNavbarBrand>

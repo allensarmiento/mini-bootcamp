@@ -1,7 +1,7 @@
 <template>
   <div class="dashboard">
     <router-link
-      :to="`/lesson/${1}`"
+      :to="`/lesson/${lessons.length}`"
       tag="button"
       :class="['dashboard__btn', joinRoomDisabled
         ? ''
@@ -60,6 +60,10 @@
       />
     </section>
 
+    <BButton variant="primary" @click="addNewLesson">
+      Add New Lesson
+    </BButton>
+
     <hr v-if="userProfile.role === 'admin'" />
 
     <!-- Signup -->
@@ -70,16 +74,17 @@
 <script>
 import { mapState } from 'vuex';
 import io from 'socket.io-client';
+import { BButton } from 'bootstrap-vue';
 import LessonLink from '../components/LessonLink.vue';
 import SignupForm from '../components/SignupForm.vue';
-import { getLessons } from '../data/lessons';
+import { getLessons, addNewLesson } from '../data/lessons';
 
 const ENDPOINT = process.env.NODE_ENV === 'production'
   ? process.env.VUE_APP_ENDPOINT : 'http://localhost:5000/';
 
 export default {
   name: 'Dashboard',
-  components: { LessonLink, SignupForm },
+  components: { BButton, LessonLink, SignupForm },
   data() {
     return {
       lessons: [],
@@ -125,6 +130,19 @@ export default {
         this.canJoin = value;
         console.log(this.canJoin);
       });
+    },
+    async addNewLesson() {
+      const newLessonNumber = this.lessons.length + 1;
+      await addNewLesson(newLessonNumber);
+
+      const data = await getLessons();
+      this.lessons = [];
+      this.reviewLessons = [];
+
+      for (let i = 0; i < data.length; i += 1) {
+        this.lessons.push(i + 1);
+        this.reviewLessons.push(i + 1);
+      }
     },
   },
 };

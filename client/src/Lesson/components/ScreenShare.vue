@@ -4,10 +4,10 @@
 
     <section class="screen-share__controls">
       <ControlsButton v-if="!screenShareActive" @click="createScreenStream">
-        Share Screen
+        <font-awesome-icon icon="chalkboard" />
       </ControlsButton>
-      <ControlsButton v-else @click="stopScreenShare">
-        Stop Share Screen
+      <ControlsButton v-else variant="primary" @click="stopScreenShare">
+        <font-awesome-icon icon="chalkboard" />
       </ControlsButton>
     </section>
   </section>

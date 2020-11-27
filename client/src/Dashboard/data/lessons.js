@@ -1,6 +1,6 @@
 import { db } from '../../utilities/firebaseRTD';
 
-export async function getLessons() { // eslint-disable-line import/prefer-default-export
+export async function getLessons() {
   const snapshot = await db.ref('lessons').once('value');
 
   let data = [];
@@ -9,4 +9,23 @@ export async function getLessons() { // eslint-disable-line import/prefer-defaul
   data = data.filter((lesson) => 'lessonData' in lesson);
 
   return data;
+}
+
+export async function addNewLesson(lessonNumber) {
+  await db.ref(`lessons/${lessonNumber}/lessonData/0`)
+    .set(
+      {
+        number: 0,
+        title: 'New Slide',
+        items: [],
+        showReview: false,
+      },
+      (error) => {
+        if (error) {
+          console.log(`[ERROR] Failed to update slide: ${error}`);
+        } else {
+          console.log('New slide added successfully!');
+        }
+      },
+    );
 }

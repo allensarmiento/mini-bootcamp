@@ -1,16 +1,26 @@
 <template>
   <div class="controls">
     <section class="controls__video">
-      <ControlsButton @click="toggleVideo">
-        {{ videoOn ? 'Stop Video' : 'Start Video' }}
+      <ControlsButton
+        @click="toggleVideo"
+        :variant="videoOn ? 'primary' : ''"
+      >
+        <font-awesome-icon
+          :icon="videoOn ? 'video' : 'video-slash'"
+        />
       </ControlsButton>
 
-      <ControlsButton @click="toggleAudio">
-        {{ audioOn ? 'Mute' : 'Unmute' }}
+      <ControlsButton
+        @click="toggleAudio"
+        :variant="audioOn ? 'primary' : ''"
+      >
+        <font-awesome-icon
+          :icon="audioOn ? 'microphone' : 'microphone-slash'"
+        />
       </ControlsButton>
 
-      <ControlsButton @click="leave">
-        Leave
+      <ControlsButton @click="leave" variant="danger">
+        <font-awesome-icon icon="phone" />
       </ControlsButton>
 
       <!-- <ControlsButton>
