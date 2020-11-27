@@ -241,7 +241,9 @@ export default {
       }
     },
     stopScreenShare() {
-      this.localStreams.screen.stream.getVideoTrack().stop();
+      // this.localStreams.screen.stream.getVideoTrack().stop();
+      this.localStreams.screen.stream.stop();
+      this.localStreams.screen.stream.close();
 
       this.screenClient.unpublish(this.localStreams.screen.stream, (error) => {
         console.log(`[ERROR] Unpublish stream failed: ${error}`);

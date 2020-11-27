@@ -137,7 +137,7 @@ export default {
       this.socket.on('canJoin', (value) => {
         console.log('can join received');
         if (this.userProfile.role !== 'admin') {
-          if (!value) {
+          if (!value && this.$router.history.current.path !== '/') {
             this.$router.push('/');
           }
         }
