@@ -3,6 +3,9 @@
     <router-link
       :to="`/lesson/${1}`"
       tag="button"
+      :class="['dashboard__btn', joinRoomDisabled
+        ? ''
+        : 'dashboard__btn--active']"
       :disabled="joinRoomDisabled"
     >
       Join Room
@@ -128,9 +131,41 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+@keyframes pulsate {
+  0% {
+    transform: scale(1);
+    box-shadow: none;
+  }
+
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 1rem 4rem, rgba(0, 0, 0, .25);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: none;
+  }
+}
+
 .dashboard {
   padding: 4rem;
   font-size: 1.6rem;
+
+  &__btn {
+    padding: 1rem 2rem;
+    margin-bottom: 8rem;
+    background: var(--light-primary-color);
+    border: none;
+    border-radius: .4rem;
+    color: var(--text);
+    font-size: 1.8rem;
+
+    &--active {
+      background: var(--dark-primary-color);
+      animation: pulsate 1s infinite;
+    }
+  }
 
   &__main-container {
     display: flex;
