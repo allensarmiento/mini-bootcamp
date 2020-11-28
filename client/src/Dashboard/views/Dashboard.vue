@@ -60,7 +60,7 @@
       />
     </section>
 
-    <BButton variant="primary" @click="addNewLesson">
+    <BButton v-if="userProfile.role === 'admin'" variant="primary" @click="addNewLesson">
       Add New Lesson
     </BButton>
 
