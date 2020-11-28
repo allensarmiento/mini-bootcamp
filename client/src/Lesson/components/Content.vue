@@ -52,6 +52,8 @@ export default {
 
       if (image === 'basic-navbar.png') {
         value = require('../assets/basic-navbar.png'); // eslint-disable-line global-require
+      } else if (image === 'album-site.png') {
+        value = require('../assets/album-site.png'); // eslint-disable-line global-require
       } else {
         value = image;
       }
@@ -65,7 +67,8 @@ export default {
 <style lang="scss" scoped>
 .image-container {
   width: 50rem;
-  height: 30rem;
+  // height: 30rem;
+  height:  40rem;
   border-radius: .4rem;
   overflow: hidden;
 
