@@ -3,7 +3,7 @@
     <div class="remote-screen-streams"></div>
 
     <section class="screen-share__controls">
-      <ControlsButton v-if="!screenShareActive" @click="createScreenStream">
+      <ControlsButton v-if="!screenShareActive" @click="createTracks">
         <font-awesome-icon icon="chalkboard" />
       </ControlsButton>
       <ControlsButton v-else variant="primary" @click="stopScreenShare">
@@ -15,7 +15,7 @@
 
 <script>
 import { mapState } from 'vuex';
-import AgoraRTC from 'agora-rtc-sdk';
+import AgoraRTC from 'agora-rtc-sdk-ng';
 import ControlsButton from './ControlsButton.vue';
 import { fetchAccessToken } from '../data/video';
 import { getUser } from '../../utilities/firebaseRTD';
@@ -25,7 +25,10 @@ export default {
   components: { ControlsButton },
   data() {
     return {
-      screenClient: AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' }),
+      rtc: {
+        client: null,
+        localScreenTrack: null,
+      },
       screenVideoProfile: '720p_2',
 
       appId: process.env.VUE_APP_AGORA_APP_ID,
@@ -33,223 +36,101 @@ export default {
       token: '',
       uid: '',
 
-      localStreams: {
-        screen: { id: '', stream: {} },
-      },
-
-      remoteStreams: {},
-
       screenShareActive: false,
     };
   },
   computed: {
     ...mapState(['userProfile']),
-    noCurrentStreams() {
-      console.log(`Current streams: ${Object.keys(this.remoteStreams).length}`);
-      return Object.keys(this.remoteStreams).length === 0;
-    },
   },
   async mounted() {
     console.log('MOUNTED');
     this.token = await fetchAccessToken(this.channel, 'publisher', 3600 * 4);
-
-    // LOCAL
-    this.screenClient.on('stream-published', () => {
-      console.log('Local screen stream published successfully!');
-    });
-
-    this.screenClient.on('stream-unpublished', () => {
-      console.log('Local stream unpublished');
-
-      this.localStreams.screen.id = '';
-      this.localStreams.screen.stream = {};
-
-      this.screenShareActive = false;
-    });
-
-    // REMOTE
-    this.screenClient.on('stream-added', (event) => {
-      const { stream } = event;
-      const streamId = stream.getId();
-
-      if (!this.isLocalStream(streamId)) {
-        console.log(`Subscribing to remote screen stream: ${streamId}`);
-
-        this.screenClient.subscribe(stream, (error) => {
-          console.log(`[ERROR] Subscribe stream failed: ${error}`);
-        });
-
-        stream.on('stopScreenSharing', () => {
-          console.log('STOPPING SCREEN SHARING');
-
-          if (this.isLocalStream(streamId)) {
-            this.screenClient.unpublish(stream, (error) => {
-              console.log(`[ERROR] Unpublish screen stream failed: ${error}`);
-            });
-          }
-        });
-      }
-    });
-
-    this.screenClient.on('stream-removed', (event) => {
-      const { stream } = event;
-      const streamId = stream.getId();
-
-      if (!this.isLocalStream(streamId)) {
-        console.log(`Unsubscribing to remote screen stream: ${streamId}`);
-
-        delete this.remoteStreams[streamId];
-
-        const elemToRemove = document
-          .getElementById(`remote-screen-stream-${streamId}`);
-        elemToRemove.parentNode.removeChild(elemToRemove);
-      } else {
-        console.log('LOCAL STREAM REMOVED!!!');
-
-        this.screenClient.unsubscribe(stream, (error) => {
-          console.log(`[ERROR] Unsubscribe stream failed: ${error}`);
-        });
-      }
-    });
-
-    this.screenClient.on('stream-subscribed', async (event) => {
-      const remoteStream = event.stream;
-      const remoteId = remoteStream.getId();
-
-      this.remoteStreams[remoteId] = remoteStream;
-      console.log(`Subscribed to remote stream successfully: ${remoteId}`);
-
-      const userProfile = await getUser(remoteId);
-
-      document.querySelector('.remote-screen-streams')
-        .insertAdjacentHTML('beforeend', `
-          <div
-            id="remote-screen-stream-${remoteId}"
-            class="remote-screen-stream"
-          >
-            <span class="remote-screen-stream__user>
-              ${userProfile.name || 'Anonymous User'}
-            </span>
-          </div>
-        `);
-
-      remoteStream.play(`remote-screen-stream-${remoteId}`, {
-        fit: 'contain',
-      });
-    });
-
-    this.screenClient.on('peer-leave', (event) => {
-      const { uid, reason } = event;
-      console.log(`Remote user left ${uid} with reason ${reason}`);
-    });
-
-    this.initClientAndJoinChannel();
+    await this.createClient();
+    await this.joinChannel();
   },
-  beforeDestroy() {
-    console.log('BEFORE UNMOUNTING');
-
-    if (this.localStreams.screen.id && this.localStreams.screen.stream) {
-      this.stopScreenShare();
-    }
-
-    this.screenClient.leave(() => {
-      console.log('Client leaving the channel');
-    }, (error) => {
-      console.log(`[ERROR] Client leave failed: ${error}`);
-    });
+  async beforeDestroy() {
+    this.leaveCall();
   },
   methods: {
-    isLocalStream(streamId) {
-      return streamId === this.localStreams.screen.id;
-    },
-    initClientAndJoinChannel() {
-      this.screenClient.init(this.appId, () => {
-        console.log('AgoraRTC screen client initialized');
-        this.joinChannel();
-      }, (error) => {
-        console.log(`[ERROR] AgoraRTC screen client init failed: ${error}`);
-      });
-    },
-    joinChannel() {
-      const userId = this.userProfile.uid || null;
+    async createClient() {
+      this.rtc.client = AgoraRTC.createClient({ mode: 'rtc', codec: 'h264' });
 
-      this.screenClient.join(this.token, this.channel, userId, (uid) => {
-        console.log(`User ${uid} joined ${this.channel} successfully`);
-        this.uid = uid;
-      }, (error) => {
-        console.log(`[ERROR] Join channel failed: ${error}`);
-      });
-    },
-    createScreenStream() {
-      if (this.uid) {
-        let localStream;
-        const sUsrAg = navigator.userAgent;
-        if (sUsrAg.indexOf('Firefox') > -1) {
-          console.log('User using Firefox');
-          localStream = AgoraRTC.createStream({
-            streamID: this.uid,
-            audio: false,
-            video: false,
-            screen: true,
-            screenAudio: false,
-            mediaSource: 'screen',
-          });
-        } else if (sUsrAg.indexOf('Chrome')) {
-          console.log('User using Chrome');
-          localStream = AgoraRTC.createStream({
-            streamID: this.uid,
-            audio: false,
-            video: false,
-            screen: true,
-            screenAudio: false,
+      // When user publishes
+      this.rtc.client.on('user-published', async (user, mediaType) => {
+        await this.rtc.client.subscribe(user, mediaType);
+        console.log('subsribe success');
+
+        if (mediaType === 'video') {
+          const remoteVideoTrack = user.videoTrack;
+          const userProfile = await getUser(user.uid.toString());
+
+          document.querySelector('.remote-screen-streams')
+            .insertAdjacentHTML('beforeend', `
+              <div
+                id="remote-screen-stream-${user.uid.toString()}"
+                class="remote-screen-stream"
+              >
+                <span class="remote-screen-stream__user>
+                  ${userProfile.name || 'Anonymous User'}
+                </span>
+              </div>
+            `);
+
+          remoteVideoTrack.play(`remote-screen-stream-${user.uid.toString()}`, {
+            fit: 'contain',
           });
         }
 
-        localStream.setScreenProfile(this.screenVideoProfile);
-
-        localStream.init(() => {
-          console.log('getScreen successful!');
-
-          this.screenClient.publish(localStream, (error) => {
-            console.log(`[ERROR] Publish screen stream error: ${error}`);
-          });
-
-          this.localStreams.screen.id = localStream.getId();
-          this.localStreams.screen.stream = localStream;
-
-          this.screenShareActive = true;
-
-          this.localStreams.screen.stream
-            .getVideoTrack()
-            .onended = () => {
-              this.screenClient
-                .unpublish(this.localStreams.screen.stream, (error) => {
-                  console.log(`[ERROR] Unpublish stream failed: ${error}`);
-                });
-
-              this.localStreams.screen.id = '';
-              this.localStreams.screen.stream = {};
-              this.screenShareActive = false;
-            };
-        }, (error) => {
-          console.log(`[ERROR] getScreen failed: ${error}`);
-
-          this.localStreams.screen.id = '';
-          this.localStreams.screen.stream = {};
-          this.screenShareActive = false;
-        });
-      }
-    },
-    stopScreenShare() {
-      // this.localStreams.screen.stream.getVideoTrack().stop();
-      this.localStreams.screen.stream.stop();
-      this.localStreams.screen.stream.close();
-
-      this.screenClient.unpublish(this.localStreams.screen.stream, (error) => {
-        console.log(`[ERROR] Unpublish stream failed: ${error}`);
+        // if (mediaType === 'audio') {
+        //   const remoteAudioTrack = user.audioTrack;
+        //   remoteAudioTrack.play();
+        // }
       });
 
-      this.screenShareActive = false;
+      // When user unpublishes
+      this.rtc.client.on('user-unpublished', (user) => {
+        const playerContainer = document.getElementById(user.uid);
+        if (playerContainer) playerContainer.remove();
+      });
+    },
+    async joinChannel() {
+      const userId = this.userProfile.uid || null;
+      try {
+        const uid = await this.rtc.client
+          .join(this.appId, this.channel, this.token, userId);
+
+        console.log(`User ${uid} joined ${this.channel} successfully`);
+        this.uid = uid;
+      } catch (error) {
+        console.log(`[ERROR] Join Channel failed: ${error}`);
+      }
+    },
+    async createTracks() {
+      if (this.uid) {
+        this.rtc.localScreenTrack = await AgoraRTC.createScreenVideoTrack({
+          encoderConfig: this.screenVideoProfile,
+        });
+
+        await this.rtc.client.publish(this.rtc.localScreenTrack);
+        this.screenShareActive = true;
+      }
+    },
+    async stopScreenShare() {
+      try {
+        this.rtc.localScreenTrack.close();
+        await this.rtc.client.unpublish(this.rtc.localScreenTrack);
+        this.screenShareActive = false;
+      } catch (error) {
+        console.log(`[ERROR] Stopping screen share: ${error}`);
+      }
+    },
+    async leaveCall() {
+      this.stopScreenShare();
+      this.rtc.client.remoteUsers.forEach((user) => {
+        const playerContainer = document.getElementById(user.uid);
+        if (playerContainer) playerContainer.remove();
+      });
+      await this.rtc.client.leave();
     },
   },
 };

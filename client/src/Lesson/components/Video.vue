@@ -8,7 +8,7 @@
 
 <script>
 import { mapState } from 'vuex';
-import AgoraRTC from 'agora-rtc-sdk';
+import AgoraRTC from 'agora-rtc-sdk-ng';
 import { fetchAccessToken } from '../data/video';
 import { getUser } from '../../utilities/firebaseRTD';
 
@@ -24,283 +24,131 @@ export default {
   },
   watch: {
     videoOn(val) {
-      if (
-        val
-        && this.localStreams.camera.id
-        && this.localStreams.camera.stream
-      ) {
-        // this.publish();
-        this.localStreams.camera.stream.unmuteVideo();
-      } else {
-        // this.unpublish();
-        this.localStreams.camera.stream.muteVideo();
-      }
+      console.log(`Video enabled: ${val}`);
+      this.rtc.localVideoTrack.setEnabled(val);
     },
     audioOn(val) {
-      console.log(`audioOn: ${val}`);
-      if (
-        val
-        && this.localStreams.camera.id
-        && this.localStreams.camera.stream
-      ) {
-        this.localStreams.camera.stream.unmuteAudio();
-      } else {
-        this.localStreams.camera.stream.muteAudio();
-      }
+      this.rtc.localAudioTrack.setEnabled(val);
     },
     async leave(val) {
       if (val) {
-        if (this.localStreams.camera.id && this.localStreams.camera.stream) {
-          console.log('stopping camera');
-          await this.stopCamera();
-
-          this.localStreams.camera.id = '';
-          this.localStreams.camera.stream = {};
-        }
-
-        await this.client.leave(() => {
-          console.log('Client leaving the channel');
-        }, (error) => {
-          console.log(`[ERROR] Client leave failed: ${error}`);
-        });
-
+        await this.leaveCall();
         this.$router.push('/');
       }
     },
   },
   data() {
     return {
-      client: AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' }),
-      cameraVideoProfile: '480p_4',
+      rtc: {
+        client: null,
+        localAudioTrack: null,
+        localVideoTrack: null,
+      },
+      cameraVideoProfile: '240p_1',
 
       appId: process.env.VUE_APP_AGORA_APP_ID,
       channel: process.env.VUE_APP_VIDEO_CHANNEL,
       token: '',
       uid: '',
-
-      localStreams: {
-        camera: { id: '', stream: {} },
-      },
-
-      remoteStreams: {},
     };
   },
   async mounted() {
     console.log('MOUNTED');
     this.token = await fetchAccessToken(this.channel, 'publisher', 3600 * 4);
-
-    // LOCAL
-    this.client.on('stream-published', () => {
-      console.log('Local stream published successfully!');
-    });
-
-    this.client.on('stream-unpublished', () => {
-      console.log('Local stream unpublished');
-
-      // this.localStreams.camera.id = '';
-      // this.localStreams.camera.stream = {};
-    });
-
-    this.client.on('mute-audio', (event) => {
-      const { uid } = event;
-      console.log(`Mute audio: ${uid}`);
-    });
-
-    this.client.on('unmute-audio', (event) => {
-      const { uid } = event;
-      console.log(`Unmute audio: ${uid}`);
-    });
-
-    // REMOTE
-    this.client.on('stream-added', (event) => {
-      const { stream } = event;
-      const streamId = stream.getId();
-
-      if (!this.isLocalStream(streamId)) {
-        console.log(`Subscribing to remote stream: ${streamId}`);
-
-        this.client.subscribe(stream, (error) => {
-          console.log(`[ERROR] Subscribe stream failed: ${error}`);
-        });
-      }
-    });
-
-    this.client.on('stream-removed', (event) => {
-      const { stream } = event;
-      const streamId = stream.getId();
-
-      if (!this.isLocalStream(streamId)) {
-        console.log(`Unsubscribing to remote stream: ${streamId}`);
-
-        delete this.remoteStreams[streamId];
-
-        const elemToRemove = document
-          .getElementById(`remote-stream-${streamId}`);
-        elemToRemove.parentNode.removeChild(elemToRemove);
-      } else {
-        console.log('LOCAL STREAM REMOVED!!!');
-        const elemToRemove = document
-          .getElementById(`local-stream-${streamId}`);
-        elemToRemove.parentNode.removeChild(elemToRemove);
-      }
-
-      // We unsubscribe in both cases
-      this.client.unsubscribe(stream, (error) => {
-        console.log(`[ERROR] Unsubscribe stream failed: ${error}`);
-      });
-    });
-
-    this.client.on('stream-subscribed', async (event) => {
-      const remoteStream = event.stream;
-      const remoteId = remoteStream.getId();
-
-      this.remoteStreams[remoteId] = remoteStream;
-      console.log(`Subscribed to remote stream successfully: ${remoteId}`);
-
-      const userProfile = await getUser(remoteId);
-
-      document.querySelector('.remote-streams')
-        .insertAdjacentHTML('beforeend', `
-          <div
-            id="remote-stream-${remoteId}"
-            class="remote-stream"
-          >
-            <span>${userProfile.name || 'Anonymous User'}</span>
-          </div>
-        `);
-
-      remoteStream.play(`remote-stream-${remoteId}`, { fit: 'contain' });
-    });
-
-    this.client.on('peer-leave', (event) => {
-      const { uid, reason } = event;
-      console.log(`Remote user left ${uid} with reason ${reason}`);
-    });
-
-    this.initClientAndJoinChannel();
+    await this.createClient();
+    await this.joinChannel();
   },
   async beforeDestroy() {
-    console.log('BEFORE UNMOUNTING');
-
-    if (this.localStreams.camera.id && this.localStreams.camera.stream) {
-      console.log('stopping camera');
-      await this.stopCamera();
-    }
-
-    await this.client.leave(() => {
-      console.log('Client leaving the channel');
-    }, (error) => {
-      console.log(`[ERROR] Client leave failed: ${error}`);
-    });
+    await this.leaveCall();
   },
   methods: {
-    isLocalStream(streamId) {
-      return streamId === this.localStreams.camera.id;
-    },
-    initClientAndJoinChannel() {
-      this.client.init(this.appId, () => {
-        console.log('AgoraRTC client initialized');
-        this.joinChannel();
-      }, (error) => {
-        console.log(`[ERROR] Agora RTC client init failed: ${error}`);
-      });
-    },
-    joinChannel() {
-      const userId = this.userProfile.uid || null;
+    async createClient() {
+      this.rtc.client = AgoraRTC.createClient({ mode: 'rtc', codec: 'h264' });
 
-      this.client.join(this.token, this.channel, userId, (uid) => {
-        console.log(`User ${uid} joined ${this.channel} successfully`);
-        this.uid = uid;
-        this.createCameraStream();
-      }, (error) => {
-        console.log(`[ERROR] Join Channel failed: ${error}`);
-      });
-    },
-    createCameraStream() {
-      if (this.uid) {
-        const localStream = AgoraRTC.createStream({
-          streamID: this.uid,
-          audio: this.audioOn,
-          video: this.videoOn,
-          screen: false,
-        });
+      // When user publishes
+      this.rtc.client.on('user-published', async (user, mediaType) => {
+        await this.rtc.client.subscribe(user, mediaType);
+        console.log('subscribe success');
 
-        localStream.setVideoProfile(this.cameraVideoProfile);
-
-        localStream.init(() => {
-          console.log('getUserMedia successful!');
-
-          document.getElementById('local-video')
+        if (mediaType === 'video') {
+          const remoteVideoTrack = user.videoTrack;
+          const userProfile = await getUser(user.uid.toString());
+          document.querySelector('.remote-streams')
             .insertAdjacentHTML('beforeend', `
               <div
-                id="local-stream-${localStream.getId()}"
-                class="local-stream"
+                id="remote-stream-${user.uid.toString()}"
+                class="remote-stream"
               >
-                <span>${this.userProfile.name || 'Anonymous User'}</span>
+                <span>${userProfile.name || 'Anonymous User'}</span>
               </div>
             `);
+          remoteVideoTrack.play(`remote-stream-${user.uid.toString()}`);
+        }
 
-          localStream.play(`local-stream-${localStream.getId()}`, {
-            fit: 'contain',
-          });
+        if (mediaType === 'audio') {
+          const remoteAudioTrack = user.audioTrack;
+          remoteAudioTrack.play();
+        }
+      });
 
-          this.client.publish(localStream, (error) => {
-            console.log(`[ERROR] Publishing local stream error ${error}`);
-          });
+      // When user unpublishes
+      this.rtc.client.on('user-unpublished', (user) => {
+        const playerContainer = document.getElementById(user.uid);
+        if (playerContainer) playerContainer.remove();
+      });
+    },
+    async joinChannel() {
+      const userId = this.userProfile.uid || null;
+      try {
+        const uid = await this.rtc.client
+          .join(this.appId, this.channel, this.token, userId);
 
-          this.localStreams.camera.id = localStream.getId();
-          this.localStreams.camera.stream = localStream;
-
-          this.localStreams.camera.stream
-            .getVideoTrack()
-            .onended = () => {
-              this.client
-                .unpublish(this.localStreams.camera.stream, (error) => {
-                  console.log(`[ERROR] Unpublish stream failed: ${error}`);
-                });
-
-              // this.localStreams.camera.id = '';
-              // this.localStreams.camera.stream = {};
-            };
-        }, (error) => {
-          console.log(`[ERROR] getScreen failed: ${error}`);
-
-          this.localStreams.camera.id = '';
-          this.localStreams.camera.stream = {};
-        });
+        console.log(`User ${uid} joined ${this.channel} successfully`);
+        this.uid = uid;
+        await this.createTracks();
+      } catch (error) {
+        console.log(`[ERROR] Join Channel failed: ${error}`);
       }
     },
-    async stopCamera() {
-      this.localStreams.camera.stream.stop();
-      this.localStreams.camera.stream.close();
-
-      await this.client.unpublish(this.localStreams.camera.stream, (error) => {
-        console.log(`[ERROR] Unpublish stream failed: ${error}`);
-      });
-    },
-
-    publish() {
-      const { id, stream } = this.localStreams.camera;
-
-      stream.play(`local-stream-${id}`, { fit: 'contain' });
-
-      this.client.publish(stream, (error) => {
-        console.log(`[ERROR] Publishing local stream error ${error}`);
-      });
-
-      stream.getVideoTrack()
-        .onended = () => {
-          this.client
-            .unpublish(stream, (error) => {
-              console.log(`[ERROR] Unpublish stream failed: ${error}`);
-            });
-        };
-    },
-    unpublish() {
-      this.client
-        .unpublish(this.localStreams.camera.stream, (error) => {
-          console.log(`[ERROR] Unpublish stream failed: ${error}`);
+    async createTracks() {
+      if (this.uid) {
+        this.rtc.localAudioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+        this.rtc.localVideoTrack = await AgoraRTC.createCameraVideoTrack({
+          encoderConfig: this.cameraVideoProfile,
+          optimizationMode: 'motion',
         });
+        await this.rtc.client
+          .publish([this.rtc.localAudioTrack, this.rtc.localVideoTrack]);
+
+        document.getElementById('local-video')
+          .insertAdjacentHTML('beforeend', `
+            <div
+              id="local-stream-${this.uid}"
+              class="local-stream"
+            >
+              <span>${this.userProfile.name || 'Anonymous User'}</span>
+            </div>
+          `);
+
+        this.rtc.localVideoTrack.play(`local-stream-${this.uid}`);
+      }
+    },
+    async leaveCall() {
+      try {
+        this.rtc.localAudioTrack.close();
+        this.rtc.localVideoTrack.close();
+        await this.rtc
+          .unpublish([this.rtc.localAudioTrack, this.rtc.localVideoTrack]);
+      } catch (error) {
+        console.log(`[ERROR] Closing tracks: ${error}`);
+      }
+
+      this.rtc.client.remoteUsers.forEach((user) => {
+        const playerContainer = document.getElementById(user.uid);
+        if (playerContainer) playerContainer.remove();
+      });
+
+      await this.rtc.client.leave();
     },
   },
 };
