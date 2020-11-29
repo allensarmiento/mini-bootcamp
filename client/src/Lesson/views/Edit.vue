@@ -135,20 +135,17 @@
           </b-input-group>
 
           <!-- Image Type -->
-          <div v-if="editSlideInputType === 'image'">
-            <b-input-group prepend="Image">
-              <b-form-input v-model="editSlideInputValue"></b-form-input>
-            </b-input-group>
-            <b-input-group prepend="Object Fit">
-              <b-form-input></b-form-input>
-            </b-input-group>
-          </div>
+          <ImageInput
+            v-if="editSlideInputType === 'image'"
+            :input="editSlideInputValue"
+            @onChange="inputValueChanged"
+          />
           <!-- Table Type -->
-          <div v-else-if="editSlideInputType === 'table'">
-            <b-input-group prepend="Table">
-              <b-form-input v-model="editSlideInputValue"></b-form-input>
-            </b-input-group>
-          </div>
+          <TableInput
+            v-else-if="editSlideInputType === 'table'"
+            :input="editSlideInputValue"
+            @onChange="inputValueChanged"
+          />
           <!-- Other -->
           <b-input-group v-else prepend="Value">
             <b-form-input
@@ -203,6 +200,8 @@ import {
   BFormInput,
 } from 'bootstrap-vue';
 import Content from '../components/Content.vue';
+import ImageInput from '../components/ImageInput.vue';
+import TableInput from '../components/TableInput.vue';
 import { getLesson, updateSlide, deleteSlide } from '../data/lessonRTD';
 import { getSlideValue } from '../utilities/slide';
 
@@ -216,6 +215,8 @@ export default {
     BInputGroupAppend,
     BFormInput,
     Content,
+    ImageInput,
+    TableInput,
   },
   data() {
     return {
@@ -301,6 +302,9 @@ export default {
     async deleteSlide(slideNumber) {
       await deleteSlide(this.lessonNumber, slideNumber);
       this.slides = await getLesson(this.lessonNumber);
+    },
+    inputValueChanged(value) {
+      this.editSlideInputValue = value;
     },
   },
 };
