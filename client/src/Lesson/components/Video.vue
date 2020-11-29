@@ -93,8 +93,15 @@ export default {
 
       // When user unpublishes
       this.rtc.client.on('user-unpublished', (user) => {
-        const playerContainer = document.getElementById(user.uid);
-        if (playerContainer) playerContainer.remove();
+        console.log(`Removing user ${user.uid}`);
+        const playerContainer = document
+          .getElementById(`remote-stream-${user.uid.toString()}`);
+        if (playerContainer) {
+          console.log('removing player container');
+          playerContainer.remove();
+        } else {
+          console.log('not removing player container');
+        }
       });
     },
     async joinChannel() {
@@ -144,8 +151,14 @@ export default {
       }
 
       this.rtc.client.remoteUsers.forEach((user) => {
-        const playerContainer = document.getElementById(user.uid);
-        if (playerContainer) playerContainer.remove();
+        const playerContainer = document
+          .getElementById(`remote-stream-${user.uid.toString()}`);
+        if (playerContainer) {
+          console.log('player container removed');
+          playerContainer.remove();
+        } else {
+          console.log('no player container');
+        }
       });
 
       await this.rtc.client.leave();
@@ -163,7 +176,7 @@ export default {
   .remote-stream {
     height: inherit;
     max-width: 100%;
-    min-height: 10rem; // TODO: Check if video appears when camera closed
+    min-height: 20rem;
 
     video {
       position: initial !important;

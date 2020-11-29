@@ -89,7 +89,8 @@ export default {
 
       // When user unpublishes
       this.rtc.client.on('user-unpublished', (user) => {
-        const playerContainer = document.getElementById(user.uid);
+        const playerContainer = document
+          .getElementById(`remote-screen-stream-${user.uid.toString()}`);
         if (playerContainer) playerContainer.remove();
       });
     },
@@ -127,7 +128,8 @@ export default {
     async leaveCall() {
       this.stopScreenShare();
       this.rtc.client.remoteUsers.forEach((user) => {
-        const playerContainer = document.getElementById(user.uid);
+        const playerContainer = document
+          .getElementById(`remote-screen-stream-${user.uid.toString()}`);
         if (playerContainer) playerContainer.remove();
       });
       await this.rtc.client.leave();
