@@ -163,6 +163,7 @@ export default {
   .remote-stream {
     height: inherit;
     max-width: 100%;
+    min-height: 10rem; // TODO: Check if video appears when camera closed
 
     video {
       position: initial !important;

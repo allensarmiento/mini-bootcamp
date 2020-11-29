@@ -5,6 +5,8 @@ export function getSlideValue(type) {
     value = 'text';
   } else if (type === 'question') {
     value = 'text';
+  } else if (type === 'link') {
+    value = 'link';
   } else if (type === 'image') {
     value = 'image';
   } else if (type === 'table') {

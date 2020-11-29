@@ -85,6 +85,23 @@
           </BInputGroup>
 
           <b-input-group
+            v-if="item.type === 'link'"
+            :prepend="`Item ${index}`"
+            class="mt-3"
+          >
+            <BFormInput v-model="item.link" />
+
+            <BInputGroupAppend>
+              <BButton
+                variant="danger"
+                @click="removeItemFromSlide(index)"
+              >
+                Remove
+              </BButton>
+            </BInputGroupAppend>
+          </b-input-group>
+
+          <b-input-group
             v-if="item.type === 'image'"
             :prepend="`Item ${index}`"
             class="mt-3"
@@ -110,6 +127,7 @@
               :options="[
                 { value: 'text', text: 'Text' },
                 { value: 'question', text: 'Question' },
+                { value: 'link', text: 'Link' },
                 { value: 'image', text: 'Image' },
                 { value: 'table', text: 'Table' },
               ]"
@@ -250,6 +268,8 @@ export default {
           newItem.text = this.editSlideInputValue;
         } else if (this.editSlideInputType === 'question') {
           newItem.text = this.editSlideInputValue;
+        } else if (this.editSlideInputType === 'link') {
+          newItem.link = this.editSlideInputValue;
         } else if (this.editSlideInputType === 'image') {
           newItem.image = this.editSlideInputValue;
         }

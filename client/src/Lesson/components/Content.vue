@@ -3,6 +3,8 @@
 
   <p v-else-if="isQuestion">{{ value }}</p>
 
+  <a v-else-if="isLink" :href="value" target="_blank">{{ value }}</a>
+
   <div
     v-else-if="isImage"
     class="image-container"
@@ -33,6 +35,9 @@ export default {
     },
     isQuestion() {
       return this.type === 'question';
+    },
+    isLink() {
+      return this.type === 'link';
     },
     isImage() {
       return this.type === 'image';
