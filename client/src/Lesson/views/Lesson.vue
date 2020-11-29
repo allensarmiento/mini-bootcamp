@@ -4,12 +4,21 @@
 
     <BJumbotron class="slide" continer-fluid>
       <div v-if="screenShareActive"><!-- --></div>
-      <ScreenShare v-if="screenShareActive" />
+      <div v-if="screenShareActive">
+        <ScreenShare v-if="screenShareActive" />
+        <h2 v-if="slides.length" class="slide__title">
+          {{ slides[slideIndex].title }}
+        </h2>
+        <Slide
+          v-if="slides.length"
+          :title="slides[slideIndex].title"
+          :displayItems="displayItems"
+        />
+      </div>
 
       <h2 v-if="!screenShareActive && slides.length" class="slide__title">
         {{ slides[slideIndex].title }}
       </h2>
-
       <Slide
         v-if="!screenShareActive && slides.length"
         :title="slides[slideIndex].title"
@@ -55,7 +64,7 @@ import Video from '../components/Video.vue';
 import Slide from '../components/Slide.vue';
 import Sidebar from '../components/Sidebar.vue';
 import UserControls from '../components/UserControls.vue';
-import { getLesson, submitAnswer } from '../data/lessonRTD';
+import { getLesson, submitAnswer, updateJoin } from '../data/lessonRTD';
 
 const ENDPOINT = process.env.NODE_ENV === 'production'
   ? process.env.VUE_APP_ENDPOINT : 'http://localhost:5000/';
@@ -99,15 +108,20 @@ export default {
     },
   },
   async mounted() {
+    if (this.userProfile.role === 'admin') {
+      await updateJoin(true);
+    }
+
     this.initializeSocket();
 
     this.slides = await getLesson(this.lessonNumber);
     console.log(this.slides);
   },
-  beforeDestroy() {
+  async beforeDestroy() {
     console.log('Stopping users from joining');
     if (this.userProfile.role === 'admin') {
       this.socket.emit('canJoin', false);
+      await updateJoin(false);
     }
   },
   methods: {

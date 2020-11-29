@@ -77,7 +77,7 @@ import io from 'socket.io-client';
 import { BButton } from 'bootstrap-vue';
 import LessonLink from '../components/LessonLink.vue';
 import SignupForm from '../components/SignupForm.vue';
-import { getLessons, addNewLesson } from '../data/lessons';
+import { getLessons, addNewLesson, canJoin } from '../data/lessons';
 
 const ENDPOINT = process.env.NODE_ENV === 'production'
   ? process.env.VUE_APP_ENDPOINT : 'http://localhost:5000/';
@@ -117,6 +117,7 @@ export default {
     }
 
     this.initializeSocket();
+    this.canJoin = await canJoin();
   },
   methods: {
     initializeSocket() {

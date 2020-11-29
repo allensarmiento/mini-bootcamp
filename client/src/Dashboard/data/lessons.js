@@ -29,3 +29,12 @@ export async function addNewLesson(lessonNumber) {
       },
     );
 }
+
+export async function canJoin() {
+  const snapshot = await db.ref('room/active').once('value');
+  return snapshot.val();
+}
+
+export async function updateJoin(val) {
+  await db.ref('room').set({ active: val });
+}

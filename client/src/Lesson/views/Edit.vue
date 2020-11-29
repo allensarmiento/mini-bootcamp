@@ -111,11 +111,31 @@
                 { value: 'text', text: 'Text' },
                 { value: 'question', text: 'Question' },
                 { value: 'image', text: 'Image' },
+                { value: 'table', text: 'Table' },
               ]"
             ></b-form-select>
           </b-input-group>
-          <b-input-group prepend="Value">
-            <b-form-input v-model="editSlideInputValue"></b-form-input>
+
+          <!-- Image Type -->
+          <div v-if="editSlideInputType === 'image'">
+            <b-input-group prepend="Image">
+              <b-form-input v-model="editSlideInputValue"></b-form-input>
+            </b-input-group>
+            <b-input-group prepend="Object Fit">
+              <b-form-input></b-form-input>
+            </b-input-group>
+          </div>
+          <!-- Table Type -->
+          <div v-else-if="editSlideInputType === 'table'">
+            <b-input-group prepend="Table">
+              <b-form-input v-model="editSlideInputValue"></b-form-input>
+            </b-input-group>
+          </div>
+          <!-- Other -->
+          <b-input-group v-else prepend="Value">
+            <b-form-input
+              v-model="editSlideInputValue"
+            ></b-form-input>
           </b-input-group>
           <b-button variant="success" @click="addItemToSlide">Add</b-button>
         </b-form-group>

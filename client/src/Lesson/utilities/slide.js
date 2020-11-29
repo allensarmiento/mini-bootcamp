@@ -9,6 +9,8 @@ export function getSlideValue(type) {
     value = 'image';
   } else if (type === 'table') {
     value = 'table';
+  } else if (type === 'code') {
+    value = 'code';
   }
 
   return value;
