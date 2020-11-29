@@ -25,10 +25,14 @@ export default {
   watch: {
     videoOn(val) {
       console.log(`Video enabled: ${val}`);
-      this.rtc.localVideoTrack.setEnabled(val);
+      if (this.rtc.client && this.rtc.localVideoTrack) {
+        this.rtc.localVideoTrack.setEnabled(val);
+      }
     },
     audioOn(val) {
-      this.rtc.localAudioTrack.setEnabled(val);
+      if (this.rtc.client && this.rtc.localAudioTrack) {
+        this.rtc.localAudioTrack.setEnabled(val);
+      }
     },
     async leave(val) {
       if (val) {
@@ -65,6 +69,21 @@ export default {
     async createClient() {
       this.rtc.client = AgoraRTC.createClient({ mode: 'rtc', codec: 'h264' });
 
+      // When user joins
+      this.rtc.client.on('user-joined', async (user) => {
+        const userProfile = await getUser(user.uid.toString());
+
+        document.querySelector('.remote-streams')
+          .insertAdjacentHTML('beforeend', `
+            <div
+              id="remote-stream-${user.uid.toString()}"
+              class="remote-stream"
+            >
+              <span>${userProfile.name || 'Anonymous User'}</span>
+            </div>
+          `);
+      });
+
       // When user publishes
       this.rtc.client.on('user-published', async (user, mediaType) => {
         await this.rtc.client.subscribe(user, mediaType);
@@ -72,16 +91,6 @@ export default {
 
         if (mediaType === 'video') {
           const remoteVideoTrack = user.videoTrack;
-          const userProfile = await getUser(user.uid.toString());
-          document.querySelector('.remote-streams')
-            .insertAdjacentHTML('beforeend', `
-              <div
-                id="remote-stream-${user.uid.toString()}"
-                class="remote-stream"
-              >
-                <span>${userProfile.name || 'Anonymous User'}</span>
-              </div>
-            `);
           remoteVideoTrack.play(`remote-stream-${user.uid.toString()}`);
         }
 
@@ -91,9 +100,15 @@ export default {
         }
       });
 
-      // When user unpublishes
-      this.rtc.client.on('user-unpublished', (user) => {
-        console.log(`Removing user ${user.uid}`);
+      // When user unpublishes something
+      this.rtc.client.on('user-unpublished', (user, mediaType) => {
+        console.log(`Removing user ${user.uid} media ${mediaType}`);
+      });
+
+      // When user leaves
+      this.rtc.client.on('user-left', (user, reason) => {
+        console.log(`User ${user.uid} left with reason ${reason}`);
+
         const playerContainer = document
           .getElementById(`remote-stream-${user.uid.toString()}`);
         if (playerContainer) {
@@ -144,7 +159,7 @@ export default {
       try {
         this.rtc.localAudioTrack.close();
         this.rtc.localVideoTrack.close();
-        await this.rtc
+        await this.rtc.client
           .unpublish([this.rtc.localAudioTrack, this.rtc.localVideoTrack]);
       } catch (error) {
         console.log(`[ERROR] Closing tracks: ${error}`);
@@ -170,17 +185,17 @@ export default {
 <style lang="scss">
 .remote-streams {
   background: var(--primary-text);
-  // height: 100%;
   max-width: 100%;
 
   .remote-stream {
     height: inherit;
     max-width: 100%;
-    min-height: 20rem;
+    min-height: 22rem;
 
     video {
       position: initial !important;
       width: 100% !important;
+      min-height: inherit !important;
     }
   }
 }
