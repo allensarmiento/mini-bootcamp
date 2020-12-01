@@ -1,234 +1,85 @@
 <template>
-  <div>
-    <h1>Edit Lesson {{ lessonNumber }}</h1>
+  <section class="edit">
+    <h1 class="edit__title">Edit Lesson {{ lessonNumber }}</h1>
 
-    <!-- Add Slide -->
     <BButton
       v-b-modal.modal-center
+      class="edit__add-slide"
       @click="addSlideClicked"
     >
       Add Slide
     </BButton>
 
-    <!-- Slide Content -->
-    <div class="edit-slide">
-      <BJumbotron v-for="(slide, index) in slides" :key="index">
-        <template #header>
-          Slide {{ slide.number }}: {{ slide.title }}
-        </template>
+    <EditSlideContent
+      :slides="slides"
+      @editSlide="editSlideClicked"
+      @deleteSlide="deleteSlideClicked"
+    />
 
-        <p>Show Review:&nbsp;
-          <span style="font-weight: 800;">{{ slide.showReview }}</span>
-        </p>
+    <BModal v-model="show" id="modal-center" centered title="Edit Slide">
+      <BInputGroup preprend="Number" class="mt-3">
+        <BFormInput v-model="editSlide.number" />
+      </BInputGroup>
 
-        <hr class="my-4" />
+      <BInputGroup prepend="Title" class="mt-3">
+        <BFormInput v-model="editSlide.title" />
+      </BInputGroup>
 
-        <div class="edit-slide__content">
-          <div v-for="(item, index) in slide.items" :key="index">
-            <Content
-              :type="item.type"
-              :value="item.type !== 'image'
-                ? item[slideValue(item.type)]
-                : item"
-            />
-          </div>
-        </div>
+      <div v-for="(item, index) in editSlide.items" :key="index">
+        <h4 class="mt-3">Item {{ index }}</h4>
 
-        <div class="edit-slide__buttons">
-          <BButton
-            v-b-modal.modal-center
-            class="edit-slide__button"
-            variant="primary"
-            @click="editSlideClicked(slide)"
-          >
-            Edit
-          </BButton>
-
-          <BButton
-            class="edit-slide__button"
-            variant="warning"
-            @click="deleteSlide(slide.number)"
-          >
-            Delete
-          </BButton>
-        </div>
-      </BJumbotron>
-    </div>
-
-    <!-- Modal -->
-    <div>
-      <BModal v-model="show" id="modal-center" centered title="BootstrapVue">
-        <BInputGroup prepend="Number" class="mt-3">
-          <BFormInput v-model="editSlide.number" />
-        </BInputGroup>
-
-        <BInputGroup prepend="Title" class="mt-3">
-          <BFormInput v-model="editSlide.title" />
-        </BInputGroup>
-
-        <div v-for="(item, index) in editSlide.items" :key="index">
-          <BInputGroup
-            v-if="item.type === 'text' || item.type === 'question'"
-            :prepend="`Item ${index}`"
-            class="mt-3"
-          >
-            <BFormInput v-model="item.text" />
-
-            <BInputGroupAppend>
-              <BButton
-                variant="danger"
-                @click="removeItemFromSlide(index)"
-              >
-                Remove
-              </BButton>
-            </BInputGroupAppend>
+        <div class="my-2">
+          <h5>Type</h5>
+          <BInputGroup>
+            <BFormInput v-model="item.type" />
           </BInputGroup>
-
-          <b-input-group
-            v-if="item.type === 'link'"
-            :prepend="`Item ${index}`"
-            class="mt-3"
-          >
-            <BFormInput v-model="item.link" />
-
-            <BInputGroupAppend>
-              <BButton
-                variant="danger"
-                @click="removeItemFromSlide(index)"
-              >
-                Remove
-              </BButton>
-            </BInputGroupAppend>
-          </b-input-group>
-
-          <b-input-group
-            v-if="item.type === 'image'"
-            :prepend="`Item ${index}`"
-            class="mt-3"
-          >
-            <b-form-input v-model="item.image"></b-form-input>
-            <b-input-group-append>
-              <b-button
-                variant="danger"
-                @click="removeItemFromSlide(index)"
-              >
-                Remove
-              </b-button>
-            </b-input-group-append>
-          </b-input-group>
         </div>
 
-        <hr />
+        <div class="my-2">
+          <h5>Text</h5>
+          <BInputGroup>
+            <BFormTextarea v-model="item.text" />
+          </BInputGroup>
+        </div>
 
-        <b-form-group>
-          <b-input-group prepend="Type">
-            <b-form-select
-              v-model="editSlideInputType"
-              :options="[
-                { value: 'text', text: 'Text' },
-                { value: 'question', text: 'Question' },
-                { value: 'link', text: 'Link' },
-                { value: 'image', text: 'Image' },
-                { value: 'table', text: 'Table' },
-              ]"
-            ></b-form-select>
-          </b-input-group>
-
-          <!-- Image Type -->
-          <ImageInput
-            v-if="editSlideInputType === 'image'"
-            :input="editSlideInputValue"
-            @onChange="inputValueChanged"
-          />
-          <!-- Table Type -->
-          <TableInput
-            v-else-if="editSlideInputType === 'table'"
-            :input="editSlideInputValue"
-            @onChange="inputValueChanged"
-          />
-          <!-- Other -->
-          <b-input-group v-else prepend="Value">
-            <b-form-input
-              v-model="editSlideInputValue"
-            ></b-form-input>
-          </b-input-group>
-          <b-button variant="success" @click="addItemToSlide">Add</b-button>
-        </b-form-group>
-
-        <b-form-checkbox
-          id="checkbox-1"
-          v-model="editSlide.showReview"
-          name="checkbox-1"
-          :value="true"
-          :unchecked-value="false"
-        >
-          Show In Review
-        </b-form-checkbox>
-
-        <template #modal-footer>
-          <div class="w-100">
-            <b-button
-              variant="dark"
-              size="sm"
-              @click="show=false"
-            >
-              Close
-            </b-button>
-            <b-button
-              variant="primary"
-              size="sm"
-              class="float-right"
-              @click="saveSlide"
-            >
-              Save
-            </b-button>
-          </div>
-        </template>
-      </BModal>
-    </div>
-  </div>
+        <BButton variant="danger" @click="removeItemFromSlide(index)">
+          Remove
+        </BButton>
+      </div>
+    </BModal>
+  </section>
 </template>
 
 <script>
-import { mapState } from 'vuex';
 import {
-  BJumbotron,
   BButton,
   BModal,
   BInputGroup,
-  BInputGroupAppend,
   BFormInput,
+  BFormTextarea,
 } from 'bootstrap-vue';
-import Content from '../components/Content.vue';
-import ImageInput from '../components/ImageInput.vue';
-import TableInput from '../components/TableInput.vue';
-import { getLesson, updateSlide, deleteSlide } from '../data/lessonRTD';
-import { getSlideValue } from '../utilities/slide';
+import EditSlideContent from '../components/EditSlideContent.vue';
+import { getLesson, deleteSlide } from '../data/lessonRTD';
 
 export default {
   name: 'Edit',
   components: {
-    BJumbotron,
     BButton,
     BModal,
     BInputGroup,
-    BInputGroupAppend,
     BFormInput,
-    Content,
-    ImageInput,
-    TableInput,
+    BFormTextarea,
+    EditSlideContent,
   },
   data() {
     return {
       slides: [],
+
       editSlide: {},
-      editSlideInputType: 'text',
-      editSlideInputValue: '',
       show: false,
     };
   },
   computed: {
-    ...mapState(['userProfile']),
     lessonNumber() {
       return this.$route.params.lessonNumber;
     },
@@ -237,9 +88,6 @@ export default {
     this.slides = await getLesson(this.lessonNumber);
   },
   methods: {
-    slideValue(type) {
-      return getSlideValue(type);
-    },
     addSlideClicked() {
       this.editSlide = {
         number: this.slides.length,
@@ -248,7 +96,6 @@ export default {
       };
     },
     editSlideClicked(slide) {
-      console.log(slide.showReview);
       this.editSlide = {
         number: slide.number,
         title: slide.title || '',
@@ -256,76 +103,29 @@ export default {
         showReview: slide.showReview,
       };
     },
-    addItemToSlide() {
-      if (
-        this.editSlide
-        && this.editSlide.items
-        && this.editSlideInputType
-        && this.editSlideInputValue
-      ) {
-        const newItem = { type: this.editSlideInputType };
-
-        if (this.editSlideInputType === 'text') {
-          newItem.text = this.editSlideInputValue;
-        } else if (this.editSlideInputType === 'question') {
-          newItem.text = this.editSlideInputValue;
-        } else if (this.editSlideInputType === 'link') {
-          newItem.link = this.editSlideInputValue;
-        } else if (this.editSlideInputType === 'image') {
-          newItem.image = this.editSlideInputValue;
-        }
-
-        this.editSlide.items.push(newItem);
-        this.editSlideInputValue = '';
-      }
+    async deleteSlideClicked(slideNumber) {
+      await deleteSlide(this.lessonNumber, slideNumber);
+      // TODO: If this is not the last slide, should reorder slides.
+      this.slides = await getLesson(this.lessonNumber, slideNumber);
     },
     removeItemFromSlide(index) {
-      if (this.editSlide && this.editSlide.items) {
-        this.editSlide.items.splice(index, 1);
-      }
-    },
-    async saveSlide() {
-      if (this.editSlide && this.editSlide.items) {
-        await updateSlide({
-          lessonNumber: this.lessonNumber,
-          slideNumber: `${this.editSlide.number}`,
-          title: this.editSlide.title,
-          items: this.editSlide.items,
-          showReview: this.editSlide.showReview,
-        });
-
-        this.slides = await getLesson(this.lessonNumber);
-
-        this.show = false;
-      }
-    },
-    async deleteSlide(slideNumber) {
-      await deleteSlide(this.lessonNumber, slideNumber);
-      this.slides = await getLesson(this.lessonNumber);
-    },
-    inputValueChanged(value) {
-      this.editSlideInputValue = value;
+      console.log(index);
     },
   },
 };
 </script>
 
 <style lang="scss" scoped>
-.edit-slide {
-  padding: 4rem;
-  font-size: 2rem;
+.edit {
+  margin-top: 2rem;
 
-  &__content {
-    text-align: left;
+  &__title {
+    font-size: 4rem;
+    margin-bottom: 2rem;
   }
 
-  &__buttons {
-    display: flex;
-    justify-content: space-between;
-  }
-
-  &__button {
-    font-size: 1.6rem;
+  &__add-slide {
+    font-size: 2rem;
   }
 }
 </style>
