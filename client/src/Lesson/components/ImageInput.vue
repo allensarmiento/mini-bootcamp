@@ -1,14 +1,20 @@
 <template>
   <div class="image-input">
-    <BInputGroup :prepend="prepend">
+    <h5>{{ prepend }}</h5>
+    <BInputGroup>
       <BFormInput
-        v-model="value"
+        v-model="data.image"
         class="image-input__value"
         @keyup="onChange"
       />
     </BInputGroup>
-    <BInputGroup prepend="Object Fit">
-      <BFormInput v-model="value" class="image-input__value" />
+
+    <h5>Object Fit</h5>
+    <BInputGroup>
+      <BFormInput
+        v-model="data.imageStyles.objectFit"
+        class="image-input__value"
+      />
     </BInputGroup>
   </div>
 </template>
@@ -21,16 +27,16 @@ export default {
   components: { BInputGroup, BFormInput },
   props: {
     prepend: { type: String, default: 'Image' },
-    input: { type: String, default: '' },
+    input: { type: Object, default: () => ({}) },
   },
   data() {
     return {
-      value: this.input,
+      data: this.input,
     };
   },
   methods: {
     onChange() {
-      this.$emit('onChange', this.value);
+      this.$emit('onChange', this.data);
     },
   },
 };

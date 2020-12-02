@@ -16,8 +16,8 @@
       @deleteSlide="deleteSlideClicked"
     />
 
-    <BModal v-model="show" id="modal-center" centered title="Edit Slide">
-      <BInputGroup preprend="Number" class="mt-3">
+    <BModal v-model="showModal" id="modal-center" centered title="Edit Slide">
+      <BInputGroup prepend="Number" class="mt-3">
         <BFormInput v-model="editSlide.number" />
       </BInputGroup>
 
@@ -25,27 +25,89 @@
         <BFormInput v-model="editSlide.title" />
       </BInputGroup>
 
-      <div v-for="(item, index) in editSlide.items" :key="index">
+      <div
+        class="edit__item"
+        v-for="(item, index) in editSlide.items"
+        :key="index"
+      >
         <h4 class="mt-3">Item {{ index }}</h4>
 
         <div class="my-2">
           <h5>Type</h5>
           <BInputGroup>
-            <BFormInput v-model="item.type" />
+            <BFormSelect v-model="item.type" :options="typeOptions" />
           </BInputGroup>
         </div>
 
         <div class="my-2">
-          <h5>Text</h5>
-          <BInputGroup>
-            <BFormTextarea v-model="item.text" />
-          </BInputGroup>
+          <TextInput
+            v-if="item.type === 'text'"
+            :input="item"
+            :index="index"
+            @onChange="editSlideValueChanged"
+          />
+          <QuestionInput
+            v-if="item.type === 'question'"
+            :input="item"
+            :index="index"
+            @onChange="editSlideValueChanged"
+          />
+          <LinkInput
+            v-if="item.type === 'link'"
+            :input="item"
+            :index="index"
+            @onChange="editSlideValueChanged"
+          />
+          <ImageInput
+            v-if="item.type === 'image'"
+            :input="item"
+            :index="index"
+            @onChange="editSlideValueChanged"
+          />
+          <TableInput
+            v-if="item.type === 'table'"
+            :input="item"
+            :index="index"
+            @onChange="editSlideValueChanged"
+          />
         </div>
 
         <BButton variant="danger" @click="removeItemFromSlide(index)">
           Remove
         </BButton>
       </div>
+
+      <hr />
+
+      <h4>Add New Item</h4>
+
+      <BFormGroup class="edit__item__new">
+        <h5>Type</h5>
+        <BInputGroup>
+          <BFormSelect v-model="newSlide.type" :options="typeOptions" />
+        </BInputGroup>
+
+        <TextInput
+          v-if="newSlide.type === 'text'"
+          :input="newSlide"
+          @onChange="newSlideValueChanged"
+        />
+        <QuestionInput
+          v-else-if="newSlide.type === 'question'"
+          :input="newSlide"
+          @onChange="newSlideValueChanged"
+        />
+        <LinkInput
+          v-else-if="newSlide.type === 'link'"
+          :input="newSlide"
+          @onChange="newSlideValueChanged"
+        />
+        <ImageInput
+          v-else-if="newSlide.type === 'image'"
+          :input="newSlide"
+          @onChange="newSlideValueChanged"
+        />
+      </BFormGroup>
     </BModal>
   </section>
 </template>
@@ -56,9 +118,14 @@ import {
   BModal,
   BInputGroup,
   BFormInput,
-  BFormTextarea,
+  BFormSelect,
 } from 'bootstrap-vue';
 import EditSlideContent from '../components/EditSlideContent.vue';
+import TextInput from '../components/TextInput.vue';
+import QuestionInput from '../components/QuestionInput.vue';
+import LinkInput from '../components/LinkInput.vue';
+import ImageInput from '../components/ImageInput.vue';
+import TableInput from '../components/TableInput.vue';
 import { getLesson, deleteSlide } from '../data/lessonRTD';
 
 export default {
@@ -68,15 +135,32 @@ export default {
     BModal,
     BInputGroup,
     BFormInput,
-    BFormTextarea,
+    BFormSelect,
     EditSlideContent,
+    TextInput,
+    QuestionInput,
+    LinkInput,
+    ImageInput,
+    TableInput,
   },
   data() {
     return {
       slides: [],
 
       editSlide: {},
-      show: false,
+      showModal: false,
+
+      newSlide: {
+        type: 'text',
+        value: '',
+      },
+      typeOptions: [
+        { value: 'text', text: 'Text' },
+        { value: 'question', text: 'Question' },
+        { value: 'link', text: 'Link' },
+        { value: 'image', text: 'Image' },
+        { value: 'table', text: 'Table' },
+      ],
     };
   },
   computed: {
@@ -111,6 +195,12 @@ export default {
     removeItemFromSlide(index) {
       console.log(index);
     },
+    editSlideValueChanged(value, itemIdx) {
+      this.editSlide.items[itemIdx] = value;
+    },
+    newSlideValueChanged(value) {
+      this.newSlide = value;
+    },
   },
 };
 </script>
@@ -126,6 +216,20 @@ export default {
 
   &__add-slide {
     font-size: 2rem;
+  }
+
+  &__item {
+    margin: 1rem 0;
+    padding: .4rem .8rem;
+    background: var(--light-primary-color);
+    border-radius: .4rem;
+
+    &__new {
+      margin: 1rem 0;
+      padding: .4rem .8rem;
+      background: var(--light-primary-color);
+      border-radius: .4rem;
+    }
   }
 }
 </style>

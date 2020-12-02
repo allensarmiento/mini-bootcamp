@@ -39,17 +39,36 @@ export default {
   },
   props: {
     prepend: { type: String, default: 'Table' },
-    input: { type: String, default: '' },
+    input: { type: Object, default: () => ({}) },
   },
   data() {
     return {
-      value: this.input,
+      data: { ...this.input },
 
       columns: [],
       rows: [],
     };
   },
+  mounted() {
+    console.log(this.data);
+
+    // TODO: Get columns and rows to display
+  },
   methods: {
+    getColumnHeaders() {
+      const headers = [];
+      if ('table' in this.data) {
+        Object.keys(this.data.table[0]).forEach((header) => {
+          headers.push(header);
+        });
+      }
+      return headers;
+    },
+    getRows() {
+      if (!this.data.table) return [];
+
+      return this.data.table;
+    },
     addColumn() {
       this.columns.push('New Column');
     },
