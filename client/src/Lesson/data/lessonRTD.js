@@ -71,6 +71,11 @@ export async function deleteSlide(lessonNumber, slideNumber) {
   await db.ref(`lessons/${lessonNumber}/lessonData/${slideNumber}`).remove();
 }
 
+export async function updateSlides(lessonNumber, slides) {
+  await db.ref(`lessons/${lessonNumber}/lessonData`)
+    .set(slides);
+}
+
 export async function updateJoin(val) {
   await db.ref('room').set({ active: val });
 }

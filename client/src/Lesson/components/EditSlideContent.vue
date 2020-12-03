@@ -35,7 +35,7 @@
         <BButton
           class="content__slide__button"
           variant="warning"
-          @click="deleteSlideClicked(slide.number)"
+          @click="deleteSlideClicked(index)"
         >
           Delete
         </BButton>

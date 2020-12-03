@@ -151,7 +151,7 @@ import QuestionInput from '../components/QuestionInput.vue';
 import LinkInput from '../components/LinkInput.vue';
 import ImageInput from '../components/ImageInput.vue';
 import TableInput from '../components/TableInput.vue';
-import { getLesson, deleteSlide, updateSlide } from '../data/lessonRTD';
+import { getLesson, updateSlides, updateSlide } from '../data/lessonRTD';
 
 export default {
   name: 'Edit',
@@ -219,9 +219,11 @@ export default {
       }
     },
     async deleteSlideClicked(slideNumber) {
-      await deleteSlide(this.lessonNumber, slideNumber);
-      // TODO: If this is not the last slide, should reorder slides.
-      this.slides = await getLesson(this.lessonNumber, slideNumber);
+      console.log('Removing at slide #', slideNumber);
+      const slides = [...this.slides];
+      slides.splice(slideNumber, 1);
+      await updateSlides(this.lessonNumber, slides);
+      this.slides = await getLesson(this.lessonNumber);
     },
     removeItemFromSlide(index) {
       if (this.editSlide && this.editSlide.items) {

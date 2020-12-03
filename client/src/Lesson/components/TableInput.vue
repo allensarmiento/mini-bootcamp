@@ -63,6 +63,7 @@ export default {
   props: {
     prepend: { type: String, default: 'Table' },
     input: { type: Object, default: () => ({}) },
+    index: { type: Number, default: null },
   },
   data() {
     return {
@@ -76,6 +77,14 @@ export default {
     console.log(this.data);
     this.columns = this.getColumnHeaders();
     this.rows = this.getRows();
+  },
+  watch: {
+    columns() {
+      this.onChange();
+    },
+    rows() {
+      this.onChange();
+    },
   },
   methods: {
     getColumnHeaders() {
@@ -116,7 +125,7 @@ export default {
         this.rows.pop();
       }
     },
-    onChanged() {
+    onChange() {
       console.log('Changing');
       const table = [];
       this.rows.forEach((row) => {
@@ -127,7 +136,7 @@ export default {
         table.push(newRow);
       });
       this.data.table = table;
-      this.$emit('onChange', this.data.table);
+      this.$emit('onChange', this.data, this.index);
     },
   },
 };
