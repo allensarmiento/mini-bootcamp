@@ -17,6 +17,18 @@
   </div>
 
   <BTable v-else-if="isTable" striped :items="value" />
+
+  <ul v-else-if="isUnorderedList" style="padding: .8rem 2.4rem;">
+    <li v-for="(item, index) in value.unorderedList" :key="index">
+      {{ item }}
+    </li>
+  </ul>
+
+  <ol v-else-if="isOrderedList" style="padding: .8rem 2.4rem;">
+    <li v-for="(item, index) in value.orderedList" :key="index">
+      {{ item }}
+    </li>
+  </ol>
 </template>
 
 <script>
@@ -49,6 +61,12 @@ export default {
     },
     isTable() {
       return this.type === 'table';
+    },
+    isUnorderedList() {
+      return this.type === 'unordered-list';
+    },
+    isOrderedList() {
+      return this.type === 'ordered-list';
     },
   },
   methods: {

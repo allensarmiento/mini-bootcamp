@@ -47,25 +47,37 @@
             @onChange="editSlideValueChanged"
           />
           <QuestionInput
-            v-if="item.type === 'question'"
+            v-else-if="item.type === 'question'"
             :input="item"
             :index="index"
             @onChange="editSlideValueChanged"
           />
           <LinkInput
-            v-if="item.type === 'link'"
+            v-else-if="item.type === 'link'"
             :input="item"
             :index="index"
             @onChange="editSlideValueChanged"
           />
           <ImageInput
-            v-if="item.type === 'image'"
+            v-else-if="item.type === 'image'"
             :input="item"
             :index="index"
             @onChange="editSlideValueChanged"
           />
           <TableInput
-            v-if="item.type === 'table'"
+            v-else-if="item.type === 'table'"
+            :input="item"
+            :index="index"
+            @onChange="editSlideValueChanged"
+          />
+          <UnorderedListInput
+            v-else-if="item.type === 'unordered-list'"
+            :input="item"
+            :index="index"
+            @onChange="editSlideValueChanged"
+          />
+          <OrderedListInput
+            v-else-if="item.type === 'ordered-list'"
             :input="item"
             :index="index"
             @onChange="editSlideValueChanged"
@@ -112,6 +124,16 @@
           :input="newSlide"
           @onChange="newSlideValueChanged"
         />
+        <UnorderedListInput
+          v-else-if="newSlide.type === 'unordered-list'"
+          :input="newSlide"
+          @onChange="newSlideValueChanged"
+        />
+        <OrderedListInput
+          v-else-if="newSlide.type === 'ordered-list'"
+          :input="newSlide"
+          @onChange="newSlideValueChanged"
+        />
 
         <BButton variant="success" @click="addItemToSlide">
           Add
@@ -151,6 +173,8 @@ import QuestionInput from '../components/QuestionInput.vue';
 import LinkInput from '../components/LinkInput.vue';
 import ImageInput from '../components/ImageInput.vue';
 import TableInput from '../components/TableInput.vue';
+import UnorderedListInput from '../components/UnorderedListInput.vue';
+import OrderedListInput from '../components/OrderedListInput.vue';
 import { getLesson, updateSlides, updateSlide } from '../data/lessonRTD';
 
 export default {
@@ -167,6 +191,8 @@ export default {
     LinkInput,
     ImageInput,
     TableInput,
+    UnorderedListInput,
+    OrderedListInput,
   },
   data() {
     return {
@@ -184,6 +210,8 @@ export default {
         { value: 'link', text: 'Link' },
         { value: 'image', text: 'Image' },
         { value: 'table', text: 'Table' },
+        { value: 'unordered-list', text: 'Unordered List' },
+        { value: 'ordered-list', text: 'Ordered List' },
       ],
     };
   },

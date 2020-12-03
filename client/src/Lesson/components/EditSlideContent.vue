@@ -61,7 +61,17 @@ export default {
   },
   methods: {
     contentValue(item) {
-      return item.type !== 'image' ? item[this.slideValue(item.type)] : item;
+      let returnItem = false;
+
+      if (item.type === 'image') {
+        returnItem = true;
+      } else if (item.type === 'unordered-list') {
+        returnItem = true;
+      } else if (item.type === 'ordered-list') {
+        returnItem = true;
+      }
+
+      return returnItem ? item : item[this.slideValue(item.type)];
     },
     slideValue(type) {
       return getSlideValue(type);

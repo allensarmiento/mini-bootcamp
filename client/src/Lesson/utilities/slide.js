@@ -11,6 +11,10 @@ export function getSlideValue(type) {
     value = 'image';
   } else if (type === 'table') {
     value = 'table';
+  } else if (type === 'unordered-list') {
+    value = 'unordered-list';
+  } else if (type === 'ordered-list') {
+    value = 'ordered-list';
   } else if (type === 'code') {
     value = 'code';
   }
