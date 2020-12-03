@@ -2,7 +2,7 @@
   <div>
     <h5>{{ prepend }}</h5>
     <BInputGroup>
-      <BFormTextarea v-model="data.text" />
+      <BFormTextarea v-model="text" />
     </BInputGroup>
   </div>
 </template>
@@ -21,10 +21,20 @@ export default {
   data() {
     return {
       data: { ...this.input },
+      text: '',
     };
+  },
+  mounted() {
+    this.text = this.data.text || '';
+  },
+  watch: {
+    text() {
+      this.onChange();
+    },
   },
   methods: {
     onChange() {
+      this.data.text = this.text;
       this.$emit('onChange', this.data, this.index);
     },
   },

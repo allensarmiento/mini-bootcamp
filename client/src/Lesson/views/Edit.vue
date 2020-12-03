@@ -107,7 +107,32 @@
           :input="newSlide"
           @onChange="newSlideValueChanged"
         />
+        <TableInput
+          v-else-if="newSlide.type === 'table'"
+          :input="newSlide"
+          @onChange="newSlideValueChanged"
+        />
+
+        <BButton variant="success" @click="addItemToSlide">
+          Add
+        </BButton>
       </BFormGroup>
+
+      <template #modal-footer>
+        <div class="w-100">
+          <BButton variant="dark" size="sm" @click="showModal=false">
+            Close
+          </BButton>
+          <BButton
+            variant="primary"
+            size="sm"
+            class="float-right"
+            @click="saveSlide"
+          >
+            Save
+          </BButton>
+        </div>
+      </template>
     </BModal>
   </section>
 </template>
@@ -126,7 +151,7 @@ import QuestionInput from '../components/QuestionInput.vue';
 import LinkInput from '../components/LinkInput.vue';
 import ImageInput from '../components/ImageInput.vue';
 import TableInput from '../components/TableInput.vue';
-import { getLesson, deleteSlide } from '../data/lessonRTD';
+import { getLesson, deleteSlide, updateSlide } from '../data/lessonRTD';
 
 export default {
   name: 'Edit',
@@ -152,7 +177,6 @@ export default {
 
       newSlide: {
         type: 'text',
-        value: '',
       },
       typeOptions: [
         { value: 'text', text: 'Text' },
@@ -187,19 +211,42 @@ export default {
         showReview: slide.showReview,
       };
     },
+    addItemToSlide() {
+      if (this.editSlide && this.editSlide.items && this.newSlide.type) {
+        const newItem = { ...this.newSlide };
+        this.editSlide.items.push(newItem);
+        this.newSlide = { type: 'text' };
+      }
+    },
     async deleteSlideClicked(slideNumber) {
       await deleteSlide(this.lessonNumber, slideNumber);
       // TODO: If this is not the last slide, should reorder slides.
       this.slides = await getLesson(this.lessonNumber, slideNumber);
     },
     removeItemFromSlide(index) {
-      console.log(index);
+      if (this.editSlide && this.editSlide.items) {
+        this.editSlide.items.splice(index, 1);
+      }
     },
     editSlideValueChanged(value, itemIdx) {
       this.editSlide.items[itemIdx] = value;
     },
     newSlideValueChanged(value) {
       this.newSlide = value;
+    },
+    async saveSlide() {
+      if (this.editSlide && this.editSlide.items) {
+        await updateSlide({
+          lessonNumber: this.lessonNumber,
+          slideNumber: `${this.editSlide.number}`,
+          title: this.editSlide.title,
+          items: this.editSlide.items,
+          showReview: this.editSlide.showReview,
+        });
+      }
+
+      this.slides = await getLesson(this.lessonNumber);
+      this.showModal = false;
     },
   },
 };

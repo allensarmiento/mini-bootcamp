@@ -3,7 +3,7 @@
     <h5>{{ prepend }}</h5>
     <BInputGroup>
       <BFormInput
-        v-model="data.image"
+        v-model="image"
         class="image-input__value"
         @keyup="onChange"
       />
@@ -12,7 +12,7 @@
     <h5>Object Fit</h5>
     <BInputGroup>
       <BFormInput
-        v-model="data.imageStyles.objectFit"
+        v-model="objectFit"
         class="image-input__value"
       />
     </BInputGroup>
@@ -28,15 +28,38 @@ export default {
   props: {
     prepend: { type: String, default: 'Image' },
     input: { type: Object, default: () => ({}) },
+    index: { type: Number, default: null },
   },
   data() {
     return {
-      data: this.input,
+      data: { ...this.input },
+      image: '',
+      objectFit: '',
     };
+  },
+  mounted() {
+    if ('imageStyles' in this.data === false) {
+      this.data.imageStyles = {
+        objectFit: '',
+      };
+    }
+
+    this.image = this.data.image;
+    this.objectFit = this.data.imageStyles.objectFit || '';
+  },
+  watch: {
+    image() {
+      this.onChange();
+    },
+    objectFit() {
+      this.onChange();
+    },
   },
   methods: {
     onChange() {
-      this.$emit('onChange', this.data);
+      this.data.image = this.image;
+      this.data.imageStyles.objectFit = this.objectFit;
+      this.$emit('onChange', this.data, this.index);
     },
   },
 };
