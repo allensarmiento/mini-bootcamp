@@ -3,9 +3,7 @@
     <div v-for="(displayItem, index) in displayItems" :key="index">
       <Content
         :type="displayItem.type"
-        :value="displayItem.type !== 'image'
-              ? displayItem[slideValue(displayItem.type)]
-              : displayItem"
+        :value="contentValue(displayItem)"
       />
     </div>
   </div>
@@ -27,6 +25,19 @@ export default {
     showSidebar: { type: Boolean, default: false },
   },
   methods: {
+    contentValue(item) {
+      let returnItem = false;
+
+      if (item.type === 'image') {
+        returnItem = true;
+      } else if (item.type === 'unordered-list') {
+        returnItem = true;
+      } else if (item.type === 'ordered-list') {
+        returnItem = true;
+      }
+
+      return returnItem ? item : item[this.slideValue(item.type)];
+    },
     slideValue(type) {
       return getSlideValue(type);
     },
