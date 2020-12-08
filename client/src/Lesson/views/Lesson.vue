@@ -25,6 +25,28 @@
         :displayItems="displayItems"
       />
 
+      <div class="controls"></div>
+      <!-- <UserControls
+        :expanded="`${showSidebar}`"
+        :videoOn="videoOn"
+        :audioOn="audioOn"
+        @toggleVideo="toggleVideo"
+        @toggleAudio="toggleAudio"
+        @leave="leaveClicked"
+        @toggleScreenShare="screenShareClicked"
+        @slideBackward="slideBackward"
+        @toggleSidebar="toggleSidebar"
+        @slideForward="slideForward"
+      /> -->
+    </BJumbotron>
+
+    <section class="video">
+      <Video
+        :videoOn="videoOn"
+        :audioOn="audioOn"
+        :leave="leave"
+      />
+
       <UserControls
         :expanded="`${showSidebar}`"
         :videoOn="videoOn"
@@ -36,15 +58,9 @@
         @slideBackward="slideBackward"
         @toggleSidebar="toggleSidebar"
         @slideForward="slideForward"
+        column
       />
-    </BJumbotron>
-
-    <Video
-      class="video"
-      :videoOn="videoOn"
-      :audioOn="audioOn"
-      :leave="leave"
-    />
+    </section>
 
     <Sidebar
       :show="showSidebar"
@@ -290,6 +306,7 @@ export default {
   height: 90vh;
   background-color: var(--light-primary-color);
   color: var(--primary-text);
+  overflow: auto;
 
   &__title {
     grid-row: title-start / title-end;
@@ -318,7 +335,12 @@ export default {
   }
 }
 
-::v-deep .controls {
+.controls {
   grid-row: controls-start / controls-end;
+  background: var(--primary-color);
 }
+
+// ::v-deep .controls {
+//   grid-row: controls-start / controls-end;
+// }
 </style>

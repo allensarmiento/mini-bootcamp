@@ -140,6 +140,14 @@
         </BButton>
       </BFormGroup>
 
+      <BFormCheckbox
+        v-model="editSlide.showReview"
+        :value="true"
+        :unchecked-value="false"
+      >
+        Show in Review
+      </BFormCheckbox>
+
       <template #modal-footer>
         <div class="w-100">
           <BButton variant="dark" size="sm" @click="showModal=false">
@@ -166,6 +174,7 @@ import {
   BInputGroup,
   BFormInput,
   BFormSelect,
+  BFormCheckbox,
 } from 'bootstrap-vue';
 import EditSlideContent from '../components/EditSlideContent.vue';
 import TextInput from '../components/TextInput.vue';
@@ -185,6 +194,7 @@ export default {
     BInputGroup,
     BFormInput,
     BFormSelect,
+    BFormCheckbox,
     EditSlideContent,
     TextInput,
     QuestionInput,
@@ -247,15 +257,15 @@ export default {
       }
     },
     async deleteSlideClicked(slideNumber) {
-      console.log('Removing at slide #', slideNumber);
       const slides = [...this.slides];
       slides.splice(slideNumber, 1);
       await updateSlides(this.lessonNumber, slides);
       this.slides = await getLesson(this.lessonNumber);
     },
-    removeItemFromSlide(index) {
+    async removeItemFromSlide(index) {
       if (this.editSlide && this.editSlide.items) {
         this.editSlide.items.splice(index, 1);
+        await this.saveSlide();
       }
     },
     editSlideValueChanged(value, itemIdx) {

@@ -1,5 +1,5 @@
 <template>
-  <div class="controls">
+  <div :class="['controls', column ? 'controls--column' : '']">
     <section class="controls__video">
       <ControlsButton
         @click="toggleVideo"
@@ -34,7 +34,7 @@
       </ControlsButton>
 
       <ControlsButton @click="toggleScreenShare">
-        Screen Share
+        Screen
       </ControlsButton>
 
       <ControlsButton @click="toggleSidebar">
@@ -59,6 +59,7 @@ export default {
     expanded: { type: String, default: 'false' },
     videoOn: { type: Boolean, default: false },
     audioOn: { type: Boolean, default: false },
+    column: { type: Boolean, default: false },
   },
   computed: {
     ...mapState(['userProfile']),
@@ -96,5 +97,25 @@ export default {
 
   padding: 2rem 4rem;
   background: var(--primary-color);
+
+  &--column {
+    flex-direction: column;
+    align-items: center;
+    padding: .4rem .8rem;
+
+    & > :not(:last-child) {
+      margin-bottom: 1rem;
+    }
+  }
+
+  &__video {
+    display: flex;
+    overflow: auto;
+  }
+
+  &__admin {
+    display: flex;
+    overflow: auto;
+  }
 }
 </style>
