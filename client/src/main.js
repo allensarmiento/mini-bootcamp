@@ -1,39 +1,41 @@
-import Vue from 'vue'
-import VueRouter from 'vue-router'
-import Vuex from 'vuex'
-import 'es6-promise/auto'
-import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
-import 'bootstrap/dist/css/bootstrap.css'
-import 'bootstrap-vue/dist/bootstrap-vue.css'
+import Vue from 'vue';
+import { BootstrapVue, IconsPlugin } from 'bootstrap-vue';
+import 'bootstrap/dist/css/bootstrap.css';
+import 'bootstrap-vue/dist/bootstrap-vue.css';
+import { library } from '@fortawesome/fontawesome-svg-core';
+import {
+  faVideo,
+  faVideoSlash,
+  faPhone,
+  faPhoneSlash,
+  faMicrophone,
+  faMicrophoneSlash,
+  faTty,
+  faChalkboard,
+} from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
-import App from './App.vue'
+import App from './App.vue';
+import router from './router';
+import store from './store';
 
-Vue.use(VueRouter)
-Vue.use(Vuex)
-// Install BootstrapVue
-Vue.use(BootstrapVue)
-// Optionally install the BootstrapVue icon components plugin
-Vue.use(IconsPlugin)
+Vue.config.productionTip = false;
 
-Vue.config.productionTip = false
+library.add(faVideo);
+library.add(faVideoSlash);
+library.add(faPhone);
+library.add(faPhoneSlash);
+library.add(faMicrophone);
+library.add(faMicrophoneSlash);
+library.add(faTty);
+library.add(faChalkboard);
 
-const router = new VueRouter([
-  { path: '/', component: '' },
-])
-
-const store = new Vuex.Store({
-  state: {
-    count: 0
-  },
-  mutations: {
-    increment (state) {
-      state.count++
-    }
-  }
-})
+Vue.component('font-awesome-icon', FontAwesomeIcon);
+Vue.use(BootstrapVue);
+Vue.use(IconsPlugin);
 
 new Vue({
   router,
   store,
-  render: h => h(App),
-}).$mount('#app')
+  render: (h) => h(App),
+}).$mount('#app');
