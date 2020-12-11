@@ -1,6 +1,12 @@
 import Vue from 'vue';
 import Vuex from 'vuex';
-import { auth } from '../data/firebase';
+import {
+  signInUser,
+  signUpUser,
+  getUserProfile,
+  logoutUser,
+} from '../data/firebase/user';
+import router from '../router';
 
 Vue.use(Vuex);
 
@@ -17,16 +23,44 @@ export default new Vuex.Store({
     },
   },
   actions: {
+    /**
+     * Sign user in and set user profile in state.
+     * @param {Vuex} dispatch
+     * @param {Object} form
+     */
     async login({ dispatch }, form) {
-      const { email, password } = form;
-      const { user } = await auth.signInWithEmailAndPassword(email, password);
+      const user = await signInUser(form);
 
-      if (user) {
-        dispatch('fetchUserProfile', user);
-      }
+      if (user) dispatch('fetchUserProfile', user);
     },
-    fetchUserProfile() {},
+    /**
+     * Get user profile and set in state.
+     * @param {Vuex} commit
+     * @param {Object} user
+     */
+    async fetchUserProfile({ commit }, user) {
+      const userProfile = await getUserProfile(user.uid);
+      userProfile.uid = user.uid;
+
+      commit('setUserProfile', userProfile);
+
+      if (router.currentRoute.path === '/login') router.push('/');
+    },
+    /**
+     * @param {Vuex} dispatch
+     * @param {Object} form
+     */
+    async signup(dispatch, form) {
+      await signUpUser(form);
+
+      // Note: The signup form is currently only available for an admin.
+      // Otherwise, dispatch fetching the user's profile.
+    },
+    async logout({ commit }) {
+      await logoutUser();
+      commit('setUserProfile', {});
+      router.push('/login');
+    },
   },
-  modules: {
-  },
+  modules: {},
 });

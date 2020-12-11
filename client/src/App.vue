@@ -1,32 +1,70 @@
 <template>
   <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </div>
+    <Navbar v-if="userProfile.name" />
     <router-view/>
   </div>
 </template>
 
+<script>
+import { mapState } from 'vuex';
+import Navbar from './Navbar/views/Navbar.vue';
+
+export default {
+  name: 'App',
+  components: { Navbar },
+  computed: mapState(['userProfile']),
+};
+</script>
+
 <style lang="scss">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
+// #app {
+//   font-family: Avenir, Helvetica, Arial, sans-serif;
+//   -webkit-font-smoothing: antialiased;
+//   -moz-osx-font-smoothing: grayscale;
+//   text-align: center;
+//   color: #2c3e50;
+// }
+
+// #nav {
+//   padding: 30px;
+
+//   a {
+//     font-weight: bold;
+//     color: #2c3e50;
+
+//     &.router-link-exact-active {
+//       color: #42b983;
+//     }
+//   }
+// }
+
+:root {
+  --dark-primary-color: #455A64;
+  --light-primary-color: #CFD8DC;
+
+  --primary-color: #607D8B;
+  --text-light: #FFF;
+  --text-light-grey: #BDBDBD;
+  --text-dark: #212121;
+  --text-secondary: #757575;
+
+  --icons: #FFF;
+  --divider-color: #BDBDBD;
 }
 
-#nav {
-  padding: 30px;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: inherit;
+}
 
-  a {
-    font-weight: bold;
-    color: #2c3e50;
+html {
+  --dark-primary-color: #455A64;
 
-    &.router-link-exact-active {
-      color: #42b983;
-    }
-  }
+  font-size: 62.5%;
+}
+
+body {
+  box-sizing: border-box;
 }
 </style>

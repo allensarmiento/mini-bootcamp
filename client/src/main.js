@@ -18,6 +18,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import App from './App.vue';
 import router from './router';
 import store from './store';
+import { auth } from './data/firebase/firebase';
 
 Vue.config.productionTip = false;
 
@@ -34,8 +35,17 @@ Vue.component('font-awesome-icon', FontAwesomeIcon);
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);
 
-new Vue({
-  router,
-  store,
-  render: (h) => h(App),
-}).$mount('#app');
+let app;
+auth.onAuthStateChanged((user) => {
+  if (!app) {
+    app = new Vue({
+      store,
+      router,
+      render: (h) => h(App),
+    }).$mount('#app');
+  }
+
+  if (user) {
+    store.dispatch('fetchUserProfile', user);
+  }
+});
