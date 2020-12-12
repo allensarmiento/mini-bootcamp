@@ -40,9 +40,10 @@ export default {
 
 :root {
   --dark-primary-color: #455A64;
-  --light-primary-color: #CFD8DC;
-
   --primary-color: #607D8B;
+  --light-primary-color: #CFD8DC;
+  --accent-color: #448AFF;
+
   --text-light: #FFF;
   --text-light-grey: #BDBDBD;
   --text-dark: #212121;

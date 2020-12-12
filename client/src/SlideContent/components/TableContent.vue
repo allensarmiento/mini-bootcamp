@@ -1,5 +1,5 @@
 <template>
-  <BTable :items="value" striped />
+  <BTable :items="value.table" striped />
 </template>
 
 <script>
@@ -9,7 +9,7 @@ export default {
   name: 'TableContent',
   components: { BTable },
   props: {
-    value: { type: Array, default: () => ([]) },
+    value: { type: Object, default: () => ([]) },
   },
 };
 </script>

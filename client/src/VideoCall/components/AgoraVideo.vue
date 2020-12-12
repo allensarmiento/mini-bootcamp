@@ -9,7 +9,7 @@
 <script>
 import { mapState } from 'vuex';
 import AgoraRTC from 'agora-rtc-sdk-ng';
-import { fetchAccessToken } from '../../data/firebase/video';
+import { fetchAgoraAccessToken } from '../../data/firebase/video';
 import { getUserProfile } from '../../data/firebase/user';
 import { AGORA_CONFIG } from '../../constants/constants';
 
@@ -19,9 +19,6 @@ export default {
     videoOn: { type: Boolean, default: false },
     audioOn: { type: Boolean, default: false },
     leave: { type: Boolean, default: false },
-  },
-  computed: {
-    ...mapState(['userProfile']),
   },
   data() {
     return {
@@ -56,10 +53,19 @@ export default {
       }
     },
   },
+  computed: {
+    ...mapState(['userProfile']),
+  },
   async mounted() {
-    this.token = await fetchAccessToken(this.channel, 'publisher', 3600 * 4);
+    this.token = await fetchAgoraAccessToken(
+      this.channel,
+      'publisher',
+      3600 * 4,
+    );
+
     await this.createClient();
     await this.joinChannel();
+    this.$emit('videoInitialized');
   },
   async beforeDestroy() {
     await this.leaveCall();
@@ -71,7 +77,7 @@ export default {
       this.rtc.client.on('user-joined', async (user) => {
         const userProfile = await getUserProfile(user.uid.toString());
         const elementId = `remote-stream-${user.uid.toString()}`;
-        const name = userProfile.name || 'Anonymous User'; 
+        const name = userProfile.name || 'Anonymous User';
 
         document.querySelector('.remote-streams')
           .insertAdjacentHTML('beforeend', `
@@ -96,17 +102,15 @@ export default {
         }
       });
 
-      this.rtc.client.on('user-unpublished', (user, mediaType) => {});
+      // this.rtc.client.on('user-unpublished', (user, mediaType) => {});
 
-      this.rtc.client.on('user-left', (user, reason) => {
+      // this.rtc.client.on('user-left', (user, reason) => {
+      this.rtc.client.on('user-left', (user) => {
         const elementId = `remote-stream-${user.uid.toString()}`;
         const playerContainer = document.getElementById(elementId);
 
-        if (playerContainer) {
-          playerContainer.remove();
-        } else {
-          console.error('Tried removing an unavailable player container.');
-        }
+        if (playerContainer) playerContainer.remove();
+        else console.error('Tried removing an unavailable player container.');
       });
     },
     async joinChannel() {
@@ -114,8 +118,8 @@ export default {
 
       try {
         const uid = await this.rtc.client
-          .join(this.appId, this.channel, this.token, this.userId);
-        
+          .join(this.appId, this.channel, this.token, userId);
+
         this.uid = uid;
         await this.createTracks();
       } catch (error) {
@@ -133,15 +137,73 @@ export default {
         await this.rtc.client
           .publish([this.rtc.localAudioTrack, this.rtc.localVideoTrack]);
 
+        const elementId = `local-stream-${this.uid}`;
+        const name = this.userProfile.name || 'Anonymous User';
+
         document.getElementById('local-video')
-          .insertAdjacentHTML('beforeend', ``);
+          .insertAdjacentHTML('beforeend', `
+            <div id="${elementId}" class="local-stream">
+              <span>${name}</span>
+            </div>
+          `);
+
+        this.rtc.localVideoTrack.play(elementId);
       }
     },
-    async leaveCall() {},
+    async leaveCall() {
+      try {
+        this.rtc.localAudioTrack.close();
+        this.rtc.localVideoTrack.close();
+
+        await this.rtc.client
+          .unpublish([this.rtc.localAudioTrack, this.rtc.localVideoTrack]);
+      } catch (error) {
+        console.error(`Error closing tracks ${error}`);
+      }
+
+      this.rtc.client.remoteUsers.forEach((user) => {
+        const elementId = `remote-stream-${user.uid.toString()}`;
+        const playerContainer = document.getElementById(elementId);
+
+        if (playerContainer) playerContainer.remove();
+        else console.error('Tried removing an unavailable player container.');
+      });
+
+      await this.rtc.client.leave();
+    },
   },
 };
 </script>
 
-<style lang="sass" scoped>
+<style lang="scss">
+#local-video {
+  max-width: 100%;
 
+  .local-stream {
+    height: inherit;
+    max-width: 100%;
+
+    video {
+      position: initial !important;
+      width: 100% !important;
+    }
+  }
+}
+
+.remote-streams {
+  max-width: 100%;
+  background-color: var(--text-dark);
+
+  .remote-stream {
+    height: inherit;
+    min-height: 22rem;
+    max-width: 100%;
+
+    video {
+      position: initial !important;
+      min-height: inherit !important;
+      width: 100% !important;
+    }
+  }
+}
 </style>

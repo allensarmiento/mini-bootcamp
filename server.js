@@ -4,6 +4,7 @@ const cors = require('cors');
 const path = require('path');
 
 const AgoraRoutes = require('./routes/agora');
+const VonageRoutes = require('./routes/vonage');
 
 const { config } = require('./config/config');
 const { ENVIRONMENT } = require('./constants/constants');
@@ -24,6 +25,7 @@ if (config.environment === ENVIRONMENT.production) {
 }
 
 app.use('/agora', AgoraRoutes);
+app.use('/vonage', VonageRoutes);
 
 app.use(express.static(path.join(__dirname, 'client/dist')));
 
@@ -42,7 +44,6 @@ const SOCKET_LIST = {};
 let canJoin = false;
 
 io.sockets.on('connection', (socket) => {
-  console.log('Client connected');
   socket.id = generateSocketId();
 
   SOCKET_LIST[socket.id] = socket;
@@ -103,4 +104,5 @@ function generateSocketId() {
   while (id in SOCKET_LIST) {
     id = Math.random();
   }
+  return id;
 }

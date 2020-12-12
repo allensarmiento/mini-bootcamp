@@ -6,7 +6,11 @@ const config = {
   origin: process.env.ORIGIN || '',
   agora: {
     appId: process.env.AGORA_APP_ID,
-    appCertificate: process.env.AGORA_APP_CERTIFIATE,
+    appCertificate: process.env.AGORA_APP_CERTIFICATE,
+  },
+  vonage: {
+    apiKey: process.env.VONAGE_API_KEY,
+    apiSecret: process.env.VONAGE_API_SECRET,
   },
 };
 

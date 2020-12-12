@@ -1,6 +1,10 @@
 <template>
   <div class="dashboard">
-    <BInputGroup prepend="Lesson" class="dashboard__lesson mb-5">
+    <BInputGroup
+      v-if="userProfile.role === 'admin'"
+      prepend="Lesson"
+      class="dashboard__lesson mb-5"
+    >
       <BFormInput v-model="lessonNumber" />
     </BInputGroup>
 
@@ -131,7 +135,8 @@ export default {
       this.socket.on('connect', () => {});
 
       this.socket.on('canJoin', (value) => {
-        this.canJoinRoom = value;
+        console.log(`Can join ${value}`);
+        if (this.userProfile.role !== 'admin') this.canJoinRoom = value;
       });
     },
     async addNewLesson() {

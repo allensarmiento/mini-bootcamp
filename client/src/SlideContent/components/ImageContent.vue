@@ -12,7 +12,6 @@
 export default {
   name: 'ImageContent',
   props: {
-    style: { type: String, default: '' },
     value: { type: Object, default: () => ({}) },
   },
   computed: {

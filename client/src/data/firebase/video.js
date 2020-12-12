@@ -7,8 +7,8 @@ export function fetchAgoraAccessToken(channelName, role, expireTime) {
     role,
     expireTime,
   })
-  .then((response) => response.data)
-  .then((data) => data.token);
+    .then((response) => response.data)
+    .then((data) => data.token);
 }
 
 export function fetchVonageAccessToken() {}

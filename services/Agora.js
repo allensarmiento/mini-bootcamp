@@ -40,7 +40,7 @@ class Agora {
   }
 
   parseExpirationTime(expireTime) {
-    return expireTime ? parseInt(this.expireTime, 10) : 3600;
+    return expireTime ? parseInt(expireTime, 10) : 3600;
   }
 
   getPrivilegeExpireTime(expirationTime) {
@@ -54,7 +54,7 @@ class Agora {
     channelName,
     userId,
     userRole,
-    privilegeExpireTime
+    privilegeExpireTime,
   }) {
     return RtcTokenBuilder.buildTokenWithUid(
       appId,

@@ -9,6 +9,18 @@ export async function getLessons() {
   return data.filter((lesson) => 'lessonData' in lesson);
 }
 
+export async function getLesson(number) {
+  const snapshot = await db.ref(`lessons/${number}`).once('value');
+
+  let data = [];
+  if (snapshot.val()) data = snapshot.val();
+
+  let lessonData = [];
+  if (data.lessonData) lessonData = data.lessonData;
+
+  return lessonData;
+}
+
 export async function canJoinLesson() {
   const snapshot = await db.ref('room/active').once('value');
 
@@ -31,4 +43,23 @@ export async function createNewLesson(lessonNumber) {
         if (error) console.error(`Failed to update slide: ${error}`);
       },
     );
+}
+
+export async function sendAnswer({
+  lessonNumber,
+  name,
+  question,
+  answer,
+} = {}) {
+  if (!lessonNumber || !name || !question || !answer) return;
+
+  const newPostKey = await db
+    .ref(`lessons/${lessonNumber}/${name}`).push().key;
+
+  await db.ref(`lessons/${lessonNumber}/${name}/${newPostKey}`)
+    .set({ question, answer });
+}
+
+export async function updateJoin(value) {
+  await db.ref('room').set({ active: value });
 }

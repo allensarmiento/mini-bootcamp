@@ -1,11 +1,11 @@
 <template>
-  <div class="slide">
-    <div v-for="(slideItem, index) in slideItems" :key="index">
-      <SlideContent
-        :type="slide.type"
-        :value="slideItem"
-      />
-    </div>
+  <div class="slide-content">
+    <SlideContent
+      v-for="(slideItem, index) in slideItems"
+      :key="index"
+      :type="slideItem.type"
+      :value="slideItem"
+    />
   </div>
 </template>
 
@@ -22,12 +22,12 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.slide {
+.slide-content {
   padding: 1rem 4rem;
   color: currentColor;
   font-size: 2.6rem;
   text-align: left;
   overflow: auto;
-  scroll-behavior: scroll;
+  scroll-behavior: smooth;
 }
 </style>
