@@ -32,3 +32,5 @@ router.post('/sessionInfo', function(req, res) {
 
   return res.json({ sessionId, token });
 });
+
+module.exports = router;

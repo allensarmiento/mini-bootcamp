@@ -2,26 +2,11 @@
   <section class="lesson">
     <h1 class="lesson__title">Lesson {{ lessonNumber }}</h1>
 
-    <BJumbotron class="slide" container-fluid>
-      <div v-if="screenShareActive"></div>
-      <div v-if="screenShareActive">
-        <ScreenShare />
-        <h2 v-if="slides.length" class="slide__title">
-          {{ slides[slideIndex].title }}
-        </h2>
-        <Slide v-if="slides.length" :slideItems="slideItems" />
-      </div>
-
-      <h2 v-if="!screenShareActive && slides.length" class="slide__title">
-        {{ slides[slideIndex].title }}
-      </h2>
-      <Slide
-        v-if="!screenShareActive && slides.length"
-        :slideItems="slideItems"
-      />
-
-      <div class="controls"></div>
-    </BJumbotron>
+    <Slide
+      :screenShareActive="screenShareActive"
+      :title="slideTitle"
+      :slideItems="slideItems"
+    />
 
     <VideoCall
       @screenShareClicked="screenShareClicked"
@@ -44,8 +29,6 @@
 <script>
 import { mapState } from 'vuex';
 import io from 'socket.io-client';
-import { BJumbotron } from 'bootstrap-vue';
-import ScreenShare from '../../ScreenShare/views/ScreenShare.vue';
 import VideoCall from '../../VideoCall/views/Video.vue';
 import Slide from '../../Slide/views/Slide.vue';
 import Sidebar from '../../Sidebar/views/Sidebar.vue';
@@ -55,9 +38,7 @@ import { ENDPOINT } from '../../constants/constants';
 export default {
   name: 'Lesson',
   components: {
-    BJumbotron,
     Slide,
-    ScreenShare,
     VideoCall,
     Sidebar,
   },
@@ -81,6 +62,11 @@ export default {
     ...mapState(['userProfile']),
     lessonNumber() {
       return this.$route.params.lessonNumber;
+    },
+    slideTitle() {
+      return this.slides[this.slideIndex] && this.slides[this.slideIndex].title
+        ? this.slides[this.slideIndex].title
+        : '';
     },
   },
   async mounted() {
@@ -212,7 +198,7 @@ export default {
   grid-template-rows: [title-start] min-content [title-end
                       main-start] 1fr [main-end];
   grid-template-columns: [main-start] 1fr [main-end
-                         video-start] 30rem [video-end];
+                         video-start] 28vw [video-end];
 
   &__title {
     grid-row: title-start / title-end;
@@ -220,30 +206,9 @@ export default {
   }
 }
 
-.slide {
+v::deep .slide {
   grid-row: main-start / main-end;
   grid-column: main-start / main-end;
-  display: grid;
-  grid-template-rows: [title-start] min-content [title-end
-                      main-start] 1fr [main-end
-                      controls-start] min-content [controls-end];
-  padding: 0;
-  height: 90vh;
-  background-color: var(--light-primary-color);
-  color: var(--text-dark);
-  overflow: auto;
-
-  &__title {
-    grid-row: title-start / title-end;
-    padding: 1rem 2rem;
-    color: currentColor;
-    font-size: 3.6rem;
-    text-align: left;
-  }
-}
-
-v::deep .slide-content {
-  grid-row: main-start / main-end;
 }
 
 v::deep .video {

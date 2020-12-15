@@ -151,7 +151,8 @@ export default {
 .remote-screen-streams {
   display: grid;
   grid-template-columns: repeat(auto-fit, 1fr);
-  height: 82vh;
+  min-height: 50vh;
+  height: 100%;
   max-width: 100%;
   background: var(--text-dark);
   overflow: auto;
