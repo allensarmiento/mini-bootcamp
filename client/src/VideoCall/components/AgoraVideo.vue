@@ -33,6 +33,8 @@ export default {
       channel: AGORA_CONFIG.videoChannel,
       token: '',
       uid: '',
+
+      destroyed: false,
     };
   },
   watch: {
@@ -49,6 +51,7 @@ export default {
     async leave(value) {
       if (value) {
         await this.leaveCall();
+        this.destroyed = true;
         this.$router.push('/');
       }
     },
@@ -68,7 +71,7 @@ export default {
     this.$emit('videoInitialized');
   },
   async beforeDestroy() {
-    await this.leaveCall();
+    if (!this.destroyed) await this.leaveCall();
   },
   methods: {
     async createClient() {
@@ -102,7 +105,11 @@ export default {
         }
       });
 
-      // this.rtc.client.on('user-unpublished', (user, mediaType) => {});
+      // this.rtc.client.on('user-unpublished', (user) => {
+      //   const elementId = `remote-stream-${user.uid.toString()}`;
+      //   const playerContainer = document.getElementById(elementId);
+      //   if (playerContainer) playerContainer.remove();
+      // });
 
       // this.rtc.client.on('user-left', (user, reason) => {
       this.rtc.client.on('user-left', (user) => {
@@ -151,15 +158,8 @@ export default {
       }
     },
     async leaveCall() {
-      try {
-        this.rtc.localAudioTrack.close();
-        this.rtc.localVideoTrack.close();
-
-        await this.rtc.client
-          .unpublish([this.rtc.localAudioTrack, this.rtc.localVideoTrack]);
-      } catch (error) {
-        console.error(`Error closing tracks ${error}`);
-      }
+      if (this.rtc.localVideoTrack) this.rtc.localVideoTrack.close();
+      if (this.rtc.localAudioTrack) this.rtc.localAudioTrack.close();
 
       this.rtc.client.remoteUsers.forEach((user) => {
         const elementId = `remote-stream-${user.uid.toString()}`;

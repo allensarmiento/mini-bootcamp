@@ -113,13 +113,8 @@ export default {
       }
     },
     async stopScreenShare() {
-      try {
-        this.rtc.localScreenTrack.close();
-        await this.rtc.client.unpublish(this.rtc.localScreenTrack);
-        this.screenShareActive = false;
-      } catch (error) {
-        console.error(`Error stopping screen share ${error}`);
-      }
+      if (this.rtc.localScreenTrack) this.rtc.localScreenTrack.close();
+      this.screenShareActive = false;
     },
     async leaveCall() {
       this.stopScreenShare();
