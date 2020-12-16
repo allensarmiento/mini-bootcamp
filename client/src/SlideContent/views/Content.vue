@@ -1,7 +1,7 @@
 <template>
   <TextContent v-if="isText" :value="value" />
   <QuestionContent v-else-if="isQuestion" :value="value" />
-  <LinkContent v-else-if="isLink" :href="value" :value="value" />
+  <LinkContent v-else-if="isLink" :href="value.link" :value="value" />
   <ImageContent v-else-if="isImage" :value="value" />
   <TableContent v-else-if="isTable" :value="value" />
   <UnorderedListContent v-else-if="isUnorderedList" :value="value" />
