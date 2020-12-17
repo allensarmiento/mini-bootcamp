@@ -9,3 +9,7 @@ export const AGORA_CONFIG = {
   videoChannel: process.env.VUE_APP_VIDEO_CHANNEL,
   screenChannel: process.env.VUE_APP_SCREEN_CHANNEL,
 };
+
+export const VONAGE_CONFIG = {
+  videoRoom: process.env.VUE_APP_VONAGE_VIDEO_ROOM,
+};

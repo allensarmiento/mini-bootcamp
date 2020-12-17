@@ -12,7 +12,7 @@
 <script>
 import axios from 'axios';
 import VonageSession from './VonageSession.vue';
-import { ENDPOINT } from '../../constants/constants';
+import { ENDPOINT, VONAGE_CONFIG } from '../../constants/constants';
 
 export default {
   name: 'VonageVideo',
@@ -35,7 +35,7 @@ export default {
   },
   async mounted() {
     await axios
-      .post(`${ENDPOINT}vonage/sessionInfo`, { room: 'video' })
+      .post(`${ENDPOINT}vonage/sessionInfo`, { room: VONAGE_CONFIG.videoRoom })
       .then((response) => response.data)
       .then((data) => {
         this.apiKey = data.apiKey;
