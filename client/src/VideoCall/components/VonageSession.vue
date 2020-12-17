@@ -1,6 +1,11 @@
 <template>
   <div id="session" @error="errorHandler">
-    <VonagePublisher :session="session" @error="errorHandler" />
+    <VonagePublisher
+      :session="session"
+      :videoOn="videoOn"
+      :audioOn="audioOn"
+      @error="errorHandler"
+    />
 
     <VonageSubscriber
       v-for="stream in streams"
@@ -24,6 +29,8 @@ export default {
     apiKey: { type: String, default: '' },
     sessionId: { type: String, default: '' },
     token: { type: String, default: '' },
+    videoOn: { type: Boolean, default: false },
+    audioOn: { type: Boolean, default: false },
   },
   data() {
     return {

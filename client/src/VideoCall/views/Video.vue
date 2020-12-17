@@ -5,10 +5,13 @@
       :videoOn="videoOn"
       :audioOn="audioOn"
       :leave="leave"
-      @videoInitialized="isVideoInitialized"
+      @videoInitialized="onVideoInitialized"
     />
     <VonageVideo
       v-else-if="useVonage"
+      :videoOn="videoOn"
+      :audioOn="audioOn"
+      @videoInitialized="onVideoInitialized"
     />
 
     <UserControls
@@ -57,7 +60,7 @@ export default {
     },
   },
   methods: {
-    isVideoInitialized() {
+    onVideoInitialized() {
       this.videoInitialized = true;
     },
     toggleVideo() {
