@@ -27,6 +27,13 @@ const routes = [
     ),
   },
   {
+    path: '/lesson/:lessonNumber/edit',
+    name: 'Edit',
+    component: () => import(
+      /* webpackChunkName: "review" */ '../Edit/views/Edit.vue'
+    ),
+  },
+  {
     path: '/login',
     name: 'Login',
     // route level code-splitting
