@@ -2,7 +2,6 @@
   <div class="container">
     <section class="edit">
       <h1 class="edit__title">Edit Lesson {{ lessonNumber }}</h1>
-      <BButton>JSON Text Import</BButton>
 
       <div class="edit__slide">
         <BJumbotron v-for="(slide, index) in slides" :key="index">
@@ -32,12 +31,16 @@
 
     <section class="text">
       <BFormTextarea
+        ref="textarea"
         v-model="textData"
         class="text__input"
         placeholder="Enter something..."
         wrap="off"
+        @keydown.tab="onTabEntered"
       />
-      <BButton variant="success" class="save">Save Changes</BButton>
+      <BButton variant="success" class="save" @click="save">
+        Save Changes
+      </BButton>
     </section>
 
   </div>
@@ -51,7 +54,7 @@ import {
   BFormTextarea,
 } from 'bootstrap-vue';
 import SlideContent from '../../SlideContent/views/Content.vue';
-import { getLesson } from '../../data/firebase/edit';
+import { getLesson, updateSlides } from '../../data/firebase/edit';
 
 export default {
   name: 'Edit',
@@ -76,6 +79,7 @@ export default {
     textData(value) {
       try {
         this.slides = JSON.parse(value);
+        this.textData = JSON.stringify(this.slides, undefined, 2);
         this.errorMessage = '';
       } catch (error) {
         this.errorMessage = error;
@@ -88,8 +92,26 @@ export default {
     },
   },
   async mounted() {
-    this.slides = await getLesson(this.lessonNumber);
-    this.textData = JSON.stringify(this.slides, undefined, 2);
+    await this.fetchData();
+  },
+  methods: {
+    async fetchData() {
+      this.slides = await getLesson(this.lessonNumber);
+      this.textData = JSON.stringify(this.slides, undefined, 2);
+    },
+    onTabEntered() {
+      const start = this.$refs.textarea.selectionStart;
+      const end = this.$refs.textarea.selectionEnd;
+      console.log(`Start: ${start}, End: ${end}`);
+
+      this.textData = `
+        ${this.textData.substring(0, start)}\t${this.textData.substring(end)}
+      `;
+    },
+    async save() {
+      await updateSlides(this.lessonNumber, this.slides);
+      await this.fetchData();
+    },
   },
 };
 </script>
@@ -103,6 +125,12 @@ export default {
 
 .edit {
   grid-column: slides-start / slides-end;
+
+  &__title {
+    margin-top: 1rem;
+    font-size: 3rem;
+    text-align: center;
+  }
 
   &__slide {
     padding: 4rem;

@@ -13,3 +13,12 @@ export async function getLesson(number) {
 }
 
 export function updateLesson() {}
+
+/**
+ * @param {String | Number} lessonNumber
+ * @param {Array} slides
+ */
+export async function updateSlides(lessonNumber, slides) {
+  await db.ref(`lessons/${lessonNumber}/lessonData`)
+    .set(slides);
+}
