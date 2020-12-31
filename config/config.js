@@ -12,6 +12,7 @@ const config = {
     apiKey: process.env.VONAGE_API_KEY,
     apiSecret: process.env.VONAGE_API_SECRET,
   },
+  connectRedisTimeout: process.env.CONNECT_REDIS_TIMEOUT || 5000,
 };
 
 module.exports = { config };
